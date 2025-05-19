@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: header-head}">
+    <title>Edit Annotator</title>
+</head>
+<body>
+<div th:replace="~{fragments/header :: navbar}"></div>
+<div class="container">
+    <h2>Edit Annotator: <span th:text="${user.username}"></span></h2>
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <form th:action="@{/admin/annotators/update/{id}(id=${user.id})}" th:object="${user}" method="post">
+        <!-- ID caché pour la soumission du formulaire -->
+        <input type="hidden" th:field="*{id}" />
+
+        <div class="form-group">
+            <label for="username">Username (Login):</label>
+            <input type="text" id="username" th:field="*{username}" class="form-control" required/>
+            <div th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="text-danger"></div>
+        </div>
+        <div class="form-group">
+            <label for="prenom">First Name:</label>
+            <input type="text" id="prenom" th:field="*{prenom}" class="form-control" required/>
+            <div th:if="${#fields.hasErrors('prenom')}" th:errors="*{prenom}" class="text-danger"></div>
+        </div>
+        <div class="form-group">
+            <label for="nom">Last Name:</label>
+            <input type="text" id="nom" th:field="*{nom}" class="form-control" required/>
+            <div th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}" class="text-danger"></div>
+        </div>
+        <div class="form-group">
+            <label for="password">New Password (leave blank to keep current password):</label>
+            <input type="password" id="password" name="password" class="form-control" placeholder="Enter new password if you want to change it"/>
+            <!-- On ne bind pas th:field="*{password}" ici car on ne veut pas repopuler le hash.
+                 Le contrôleur le gère spécifiquement. -->
+            <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-danger"></div>
+        </div>
+        <button type="submit" class="btn btn-success">Update Annotator</button>
+        <a th:href="@{/admin/annotators}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+<div th:replace="~{fragments/footer :: footer-scripts}"></div>
+</body>
+</html>

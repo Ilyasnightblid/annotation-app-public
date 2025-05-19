@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: header-head}"></head>
+<body>
+<div th:replace="~{fragments/header :: navbar}"></div>
+
+<div class="container">
+    <h1>Admin Dashboard</h1>
+    <p>Welcome, Administrator!</p>
+
+    <div class="list-group">
+        <a th:href="@{/admin/datasets}" class="list-group-item list-group-item-action">Manage Datasets</a>
+        <a th:href="@{/admin/annotators}" class="list-group-item list-group-item-action">Manage Annotators</a>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer-scripts}"></div>
+</body>
+</html>

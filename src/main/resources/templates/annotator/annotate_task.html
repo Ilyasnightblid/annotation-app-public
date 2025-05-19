@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: header-head}"></head>
+<body>
+<div th:replace="~{fragments/header :: navbar}"></div>
+<div class="container">
+    <h2 th:text="'Annotate Task ID: ' + ${annotationTask.id} + ' for Dataset: ' + ${dataset.name}">Annotate Task</h2>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <div class="card mb-3">
+        <div class="card-header">Text Pair to Annotate</div>
+        <div class="card-body">
+            <h5 class="card-title">Text 1:</h5>
+            <p class="card-text" style="white-space: pre-wrap;" th:text="${textPair.text1}"></p>
+            <hr>
+            <h5 class="card-title">Text 2:</h5>
+            <p class="card-text" style="white-space: pre-wrap;" th:text="${textPair.text2}"></p>
+        </div>
+    </div>
+
+    <form th:action="@{/annotator/tasks/{annotationId}/annotate(annotationId=${annotationTask.id})}" method="post">
+        <div class="form-group">
+            <label for="chosenClass">Choose a Class:</label>
+            <select id="chosenClass" name="chosenClass" class="form-control" required>
+                <option value="">-- Select a Class --</option>
+                <option th:each="cls : ${possibleClasses}"
+                        th:value="${cls}"
+                        th:text="${cls}"></option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-success">Submit Annotation</button>
+        <a th:href="@{/annotator/dashboard}" class="btn btn-secondary">Cancel (Back to Dashboard)</a>
+    </form>
+</div>
+<div th:replace="~{fragments/footer :: footer-scripts}"></div>
+</body>
+</html>

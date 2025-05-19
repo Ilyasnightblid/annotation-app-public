@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: header-head}"></head>
+<body>
+<div th:replace="~{fragments/header :: navbar}"></div>
+<div class="container">
+    <h2 th:text="'Welcome, ' + ${annotatorName} + '! Your Tasks'">Annotator Dashboard</h2>
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+    <div th:if="${param.error == 'unauthorized'}" class="alert alert-warning">You are not authorized to view that task.</div>
+    <div th:if="${param.error == 'task_already_completed'}" class="alert alert-info">That task has already been completed.</div>
+
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Task ID</th>
+            <th>Dataset Name</th>
+            <th>Text1 (Preview)</th>
+            <th>Text2 (Preview)</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="task : ${tasks}">
+            <td th:text="${task.id}"></td>
+            <td th:text="${task.dataset.name}"></td>
+            <td th:text="${#strings.abbreviate(task.textPair.text1, 50)}"></td>
+            <td th:text="${#strings.abbreviate(task.textPair.text2, 50)}"></td>
+            <td>
+                <a th:href="@{/annotator/tasks/{annotationId}/annotate(annotationId=${task.id})}" class="btn btn-primary btn-sm">Annotate</a>
+            </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(tasks)}">
+            <td colspan="5" class="text-center">No pending tasks. Well done!</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div th:replace="~{fragments/footer :: footer-scripts}"></div>
+</body>
+</html>

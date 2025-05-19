@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: header-head}"></head>
+<body>
+<div th:replace="~{fragments/header :: navbar}"></div>
+<div class="container">
+    <h2 th:text="'Assign Annotators to Dataset: ' + ${dataset.name}">Assign Annotators</h2>
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <form th:action="@{/admin/datasets/{id}/assign(id=${dataset.id})}" method="post">
+        <div class="form-group">
+            <label for="annotatorIds">Select Annotators:</label>
+            <p class="text-muted small">Hold Ctrl (or Cmd on Mac) to select multiple annotators. Previously assigned annotators might receive more tasks if re-selected and new unassigned pairs exist.</p>
+            <select id="annotatorIds" name="annotatorIds" class="form-control" multiple="multiple" size="10" required>
+                <option th:each="annotator : ${allAnnotators}"
+                        th:value="${annotator.id}"
+                        th:text="${annotator.username + ' (' + annotator.prenom + ' ' + annotator.nom + ')'}"></option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-success">Assign Selected Annotators</button>
+        <a th:href="@{/admin/datasets/{id}(id=${dataset.id})}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+<div th:replace="~{fragments/footer :: footer-scripts}"></div>
+</body>
+</html>

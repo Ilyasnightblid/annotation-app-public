@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: header-head}"></head>
+<body>
+<div th:replace="~{fragments/header :: navbar}"></div>
+<div class="container">
+    <h2>Datasets</h2>
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <a th:href="@{/admin/datasets/new}" class="btn btn-primary mb-3">Create New Dataset</a>
+
+    <table class="table table-striped" th:if="${datasets != null and not #lists.isEmpty(datasets)}">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>% Avancement</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="dataset : ${datasets}">
+            <td th:text="${dataset.id}"></td>
+            <td th:text="${dataset.name}"></td>
+            <td th:text="${dataset.description != null ? #strings.abbreviate(dataset.description, 50) : ''}"></td>
+            <td>
+                <!-- Utilisation de la Map progressPercentages -->
+                <span th:text="${progressPercentages.get(dataset.id)}"></span>
+            </td>
+            <td>
+                <a th:href="@{/admin/datasets/{id}(id=${dataset.id})}" class="btn btn-info btn-sm">Details</a>
+                <a th:href="@{/admin/datasets/{id}/assign(id=${dataset.id})}" class="btn btn-warning btn-sm">Assign Annotators</a>
+                <!-- Ajouter bouton suppression si besoin -->
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div th:if="${datasets == null or #lists.isEmpty(datasets)}">
+        <p class="text-center">No datasets found.</p>
+    </div>
+</div>
+<div th:replace="~{fragments/footer :: footer-scripts}"></div>
+</body>
+</html>
