@@ -1,34 +1,86 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/header :: header-head}"></head>
-<body>
-<div th:replace="~{fragments/header :: navbar}"></div>
+<head th:replace="~{fragments/header :: header-head}">
+    <!-- Le titre peut être spécifique ici si besoin -->
+    <title>Login - Annotation App</title>
+</head>
+<body class="login-page"> <!-- Classe spéciale pour le body de la page de login -->
 
-<div class="container">
+<!-- Pas de navbar sur la page de login ou une navbar simplifiée si besoin -->
+<!-- <div th:replace="~{fragments/header :: navbar}"></div> -->
+
+<div class="container login-container">
     <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-4">
-            <h2 class="text-center mb-4">Login</h2>
-            <div th:if="${param.error}" class="alert alert-danger">
-                Invalid username or password.
+        <div class="col-12"> <!-- Prend toute la largeur du login-container -->
+            <div class="login-logo">
+                AnnotationApp
             </div>
-            <div th:if="${param.logout}" class="alert alert-success">
-                You have been logged out.
+            <div class="card login-card">
+                <div class="card-body p-lg-4"> <!-- Plus de padding sur grand écran -->
+                    <h1 class="card-title text-center">Login</h1>
+
+                    <div th:if="${param.error}" class="alert alert-danger d-flex align-items-center" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i> <!-- Icône d'erreur -->
+                        <div>
+                            Invalid username or password.
+                        </div>
+                    </div>
+                    <div th:if="${param.logout}" class="alert alert-success d-flex align-items-center" role="alert">
+                        <i class="fas fa-check-circle me-2"></i> <!-- Icône de succès -->
+                        <div>
+                            You have been logged out successfully.
+                        </div>
+                    </div>
+
+                    <form th:action="@{/login}" method="post" class="mt-4">
+                        <!-- Utilisation des floating labels de Bootstrap 5 pour un look moderne -->
+                        <div class="form-floating mb-3">
+                            <input type="text" id="username" name="username" class="form-control" placeholder="Username" required autofocus>
+                            <label for="username">
+                                <i class="fas fa-user me-2"></i>Username
+                            </label>
+                        </div>
+                        <div class="form-floating mb-4">
+                            <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
+                            <label for="password">
+                                <i class="fas fa-lock me-2"></i>Password
+                            </label>
+                        </div>
+
+                        <!-- Option pour "Remember me" si tu l'ajoutes plus tard avec Spring Security -->
+                        <!--
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="remember-me" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">
+                                    Remember me
+                                </label>
+                            </div>
+                            <a href="#!" class="text-decoration-none">Forgot password?</a>
+                        </div>
+                        -->
+
+                        <div class="d-grid"> <!-- d-grid pour un bouton pleine largeur -->
+                            <button type="submit" class="btn btn-primary btn-lg btn-login">
+                                <i class="fas fa-sign-in-alt me-2"></i>Log in
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Liens optionnels
+                    <p class="text-center mt-4 small">
+                        Don't have an account? <a href="#!" class="text-decoration-none">Sign up</a>
+                    </p>
+                    -->
+                </div>
             </div>
-            <form th:action="@{/login}" method="post">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" class="form-control" required autofocus>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">Log in</button>
-            </form>
         </div>
     </div>
 </div>
 
-<div th:replace="~{fragments/footer :: footer-scripts}"></div>
+<!-- Pas de footer standard sur la page de login ou un footer simplifié -->
+<!-- <div th:replace="~{fragments/footer :: footer-scripts}"></div> -->
+<!-- Assure-toi que Bootstrap JS est chargé si tu as des composants JS (ici, pas vraiment nécessaire pour le login seul) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>

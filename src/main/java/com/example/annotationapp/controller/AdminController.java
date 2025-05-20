@@ -16,12 +16,16 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import java.util.stream.Collectors; // Pour les données du graphique
+import java.util.List; // Pour les données du graphique
+import java.util.Map; // Pour les données du graphique
+import java.util.LinkedHashMap; // Pour un ordre prévisible dans la map du graphique
 
 
 @Controller
@@ -50,6 +54,62 @@ public class AdminController {
 
     @GetMapping("/dashboard")
     public String adminDashboard(Model model) {
+        // 1. Nombre de Datasets
+        long datasetCount = datasetService.getAllDatasets().size();
+        model.addAttribute("datasetCount", datasetCount);
+
+        // 2. Nombre d’Annotateurs
+        Role annotatorRole = roleRepository.findByName("ROLE_ANNOTATOR");
+        long annotatorCount = userRepository.findByRolesContaining(annotatorRole).size();
+        model.addAttribute("annotatorCount", annotatorCount);
+
+        // 3. Annotations Today (Utilise la méthode du service, même si elle est fictive pour l'instant)
+        long annotationsToday = annotationService.countAnnotationsMadeToday();
+        model.addAttribute("annotationsToday", annotationsToday);
+
+        // 4. Taux de complétion global (Moyenne des taux de complétion de tous les datasets)
+        List<Dataset> allDatasets = datasetService.getAllDatasets();
+        double totalCompletionRate = 0;
+        int datasetsWithPairs = 0;
+        if (!allDatasets.isEmpty()) {
+            for (Dataset ds : allDatasets) {
+                long totalPairs = datasetService.getTotalTextPairs(ds);
+                if (totalPairs > 0) {
+                    long annotatedPairs = datasetService.countAnnotatedTextPairs(ds);
+                    totalCompletionRate += ((double) annotatedPairs / totalPairs) * 100;
+                    datasetsWithPairs++;
+                }
+            }
+            if (datasetsWithPairs > 0) {
+                totalCompletionRate = totalCompletionRate / datasetsWithPairs;
+            }
+        }
+        model.addAttribute("globalCompletionRate", String.format("%.0f%%", totalCompletionRate)); // %.0f pour entier
+
+        // 5. Données pour le graphique de progression des datasets
+        // Pour l'instant, données fictives comme demandé, puis on les remplacera
+        Map<String, Double> datasetProgressData = new LinkedHashMap<>(); // LinkedHashMap pour garder l'ordre d'insertion
+         // Code pour les données réelles (à décommenter plus tard)
+        if (!allDatasets.isEmpty()) {
+            allDatasets.stream().limit(5) // Limite à 5 datasets pour l'exemple
+                .forEach(ds -> {
+                    long totalPairs = datasetService.getTotalTextPairs(ds);
+                    if (totalPairs > 0) {
+                        long annotatedPairs = datasetService.countAnnotatedTextPairs(ds);
+                        double percentage = ((double) annotatedPairs / totalPairs) * 100;
+                        datasetProgressData.put(ds.getName(), percentage);
+                    } else {
+                        datasetProgressData.put(ds.getName(), 0.0);
+                    }
+                });
+        }
+
+
+
+
+        model.addAttribute("datasetNames", datasetProgressData.keySet().stream().collect(Collectors.toList()));
+        model.addAttribute("datasetProgressValues", datasetProgressData.values().stream().collect(Collectors.toList()));
+
         return "admin/dashboard_admin";
     }
 

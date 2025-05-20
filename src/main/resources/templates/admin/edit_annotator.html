@@ -1,45 +1,97 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="fr">
 <head th:replace="~{fragments/header :: header-head}">
-    <title>Edit Annotator</title>
+    <title th:text="'Edit Annotator: ' + ${user.username} + ' - Annotation App'"></title>
 </head>
-<body>
+<body class="with-fixed-navbar">
 <div th:replace="~{fragments/header :: navbar}"></div>
-<div class="container">
-    <h2>Edit Annotator: <span th:text="${user.username}"></span></h2>
-    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
-    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-    <form th:action="@{/admin/annotators/update/{id}(id=${user.id})}" th:object="${user}" method="post">
-        <!-- ID caché pour la soumission du formulaire -->
-        <input type="hidden" th:field="*{id}" />
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Admin Dashboard</a></li>
+            <li class="breadcrumb-item"><a th:href="@{/admin/annotators}">Manage Annotators</a></li>
+            <li class="breadcrumb-item active" aria-current="page" th:text="'Edit: ' + ${user.username}">Edit Annotator</li>
+        </ol>
+    </nav>
 
-        <div class="form-group">
-            <label for="username">Username (Login):</label>
-            <input type="text" id="username" th:field="*{username}" class="form-control" required/>
-            <div th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="text-danger"></div>
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10"> <!-- Colonne plus large pour le formulaire -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-user-edit me-2"></i>Edit Annotator: <span class="fw-semibold" th:text="${user.username}"></span>
+                </div>
+                <div class="card-body p-4 p-md-5"> <!-- Plus de padding -->
+
+                    <!-- Affichage des messages flash -->
+                    <div th:if="${successMessage}" class="alert alert-success" role="alert">
+                        <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+                    </div>
+                    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+                    </div>
+
+                    <form th:action="@{/admin/annotators/update/{id}(id=${user.id})}" th:object="${user}" method="post">
+                        <!-- Username (Login) - lecture seule si tu ne veux pas permettre de le changer -->
+                        <div class="form-floating mb-3">
+                            <input type="text" id="username" th:field="*{username}" class="form-control" placeholder="Username" required
+                                   th:errorclass="is-invalid" />
+                            <!-- readonly s'il ne doit pas être modifié après création -->
+                            <label for="username"><i class="fas fa-user me-2"></i>Username (Login)</label>
+                            <div th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="invalid-feedback"></div>
+                        </div>
+
+                        <!-- First Name -->
+                        <div class="form-floating mb-3">
+                            <input type="text" id="prenom" th:field="*{prenom}" class="form-control" placeholder="First Name" required
+                                   th:errorclass="is-invalid" />
+                            <label for="prenom"><i class="fas fa-signature me-2"></i>First Name</label>
+                            <div th:if="${#fields.hasErrors('prenom')}" th:errors="*{prenom}" class="invalid-feedback"></div>
+                        </div>
+
+                        <!-- Last Name -->
+                        <div class="form-floating mb-3">
+                            <input type="text" id="nom" th:field="*{nom}" class="form-control" placeholder="Last Name" required
+                                   th:errorclass="is-invalid" />
+                            <label for="nom"><i class="fas fa-signature me-2"></i>Last Name</label>
+                            <div th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}" class="invalid-feedback"></div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- New Password -->
+                        <h5 class="mb-3 text-muted"><i class="fas fa-key me-2"></i>Change Password (Optional)</h5>
+                        <div class="form-floating mb-3">
+                            <input type="password" id="password" th:field="*{password}" class="form-control"
+                                   placeholder="New Password" th:errorclass="is-invalid" />
+                            <label for="password"><i class="fas fa-lock me-2"></i>New Password</label>
+                            <small class="form-text text-muted ms-1">Leave blank to keep current password.</small>
+                            <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="invalid-feedback"></div>
+                        </div>
+
+                        <!-- Tu pourrais ajouter un champ de confirmation de mot de passe ici si tu le souhaites -->
+                        <!--
+                        <div class="form-floating mb-4">
+                            <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" placeholder="Confirm New Password" />
+                            <label for="confirmPassword"><i class="fas fa-lock me-2"></i>Confirm New Password</label>
+                        </div>
+                        -->
+
+                        <div class="mt-4 pt-2 d-flex justify-content-end"> <!-- Aligner les boutons à droite -->
+                            <a th:href="@{/admin/annotators}" class="btn btn-outline-secondary me-2">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Update Annotator
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="prenom">First Name:</label>
-            <input type="text" id="prenom" th:field="*{prenom}" class="form-control" required/>
-            <div th:if="${#fields.hasErrors('prenom')}" th:errors="*{prenom}" class="text-danger"></div>
-        </div>
-        <div class="form-group">
-            <label for="nom">Last Name:</label>
-            <input type="text" id="nom" th:field="*{nom}" class="form-control" required/>
-            <div th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}" class="text-danger"></div>
-        </div>
-        <div class="form-group">
-            <label for="password">New Password (leave blank to keep current password):</label>
-            <input type="password" id="password" name="password" class="form-control" placeholder="Enter new password if you want to change it"/>
-            <!-- On ne bind pas th:field="*{password}" ici car on ne veut pas repopuler le hash.
-                 Le contrôleur le gère spécifiquement. -->
-            <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-danger"></div>
-        </div>
-        <button type="submit" class="btn btn-success">Update Annotator</button>
-        <a th:href="@{/admin/annotators}" class="btn btn-secondary">Cancel</a>
-    </form>
+    </div>
 </div>
+
 <div th:replace="~{fragments/footer :: footer-scripts}"></div>
 </body>
 </html>

@@ -1,37 +1,120 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/header :: header-head}"></head>
-<body>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="fr">
+<head th:replace="~{fragments/header :: header-head}">
+    <title th:text="'Annotate Task ' + ${annotationTask.id} + ' - Annotation App'"></title>
+    <style>
+        /* Styles spécifiques si la page a besoin d'un affichage particulier des textes */
+        .text-display-card .card-body {
+            max-height: 300px; /* Limiter la hauteur si les textes sont très longs */
+            overflow-y: auto; /* Ajouter une barre de défilement si nécessaire */
+        }
+        .text-content {
+            font-size: 1.05rem; /* Taille de police légèrement augmentée pour la lisibilité */
+            line-height: 1.7;  /* Interligne plus grand */
+            white-space: pre-wrap; /* Conserver les sauts de ligne et espaces du texte original */
+            padding: 10px;
+            background-color: #fdfdff; /* Fond très légèrement différent pour le bloc de texte */
+            border-radius: var(--bs-border-radius-sm); /* Coins arrondis */
+            border: 1px solid var(--color-border);
+            margin-bottom: 1rem; /* Espace entre Text1 et Text2 */
+        }
+        .text-content:last-child {
+            margin-bottom: 0;
+        }
+        .text-label {
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+    </style>
+</head>
+<body class="with-fixed-navbar">
 <div th:replace="~{fragments/header :: navbar}"></div>
-<div class="container">
-    <h2 th:text="'Annotate Task ID: ' + ${annotationTask.id} + ' for Dataset: ' + ${dataset.name}">Annotate Task</h2>
-    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-    <div class="card mb-3">
-        <div class="card-header">Text Pair to Annotate</div>
-        <div class="card-body">
-            <h5 class="card-title">Text 1:</h5>
-            <p class="card-text" style="white-space: pre-wrap;" th:text="${textPair.text1}"></p>
-            <hr>
-            <h5 class="card-title">Text 2:</h5>
-            <p class="card-text" style="white-space: pre-wrap;" th:text="${textPair.text2}"></p>
-        </div>
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/annotator/dashboard}">My Tasks</a></li>
+            <li class="breadcrumb-item active" aria-current="page" th:text="'Annotate Task ID: ' + ${annotationTask.id}">Annotate Task</li>
+        </ol>
+    </nav>
+
+    <div class="page-header-actions"> <!-- Utilise la même classe que pour list_datasets pour le titre -->
+        <h1>
+            Annotate Task ID: <span class="fw-semibold" th:text="${annotationTask.id}"></span>
+            for Dataset: <span class="fw-semibold" th:text="${dataset.name}"></span>
+        </h1>
     </div>
 
-    <form th:action="@{/annotator/tasks/{annotationId}/annotate(annotationId=${annotationTask.id})}" method="post">
-        <div class="form-group">
-            <label for="chosenClass">Choose a Class:</label>
-            <select id="chosenClass" name="chosenClass" class="form-control" required>
-                <option value="">-- Select a Class --</option>
-                <option th:each="cls : ${possibleClasses}"
-                        th:value="${cls}"
-                        th:text="${cls}"></option>
-            </select>
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+    </div>
+
+    <div class="row">
+        <!-- Colonne pour afficher les textes -->
+        <div class="col-lg-7 mb-4 mb-lg-0">
+            <div class="card text-display-card">
+                <div class="card-header">
+                    <i class="fas fa-file-alt me-2"></i>Text Pair to Annotate
+                </div>
+                <div class="card-body">
+                    <div>
+                        <strong class="text-label">Text 1:</strong>
+                        <p class="text-content" th:text="${textPair.text1}"></p>
+                    </div>
+                    <hr class="my-3">
+                    <div>
+                        <strong class="text-label">Text 2:</strong>
+                        <p class="text-content" th:text="${textPair.text2}"></p>
+                    </div>
+                </div>
+            </div>
         </div>
-        <button type="submit" class="btn btn-success">Submit Annotation</button>
-        <a th:href="@{/annotator/dashboard}" class="btn btn-secondary">Cancel (Back to Dashboard)</a>
-    </form>
+
+        <!-- Colonne pour le formulaire d'annotation -->
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-tags me-2"></i>Choose a Class
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/annotator/tasks/{annotationId}/annotate(annotationId=${annotationTask.id})}" method="post">
+                        <div class="mb-3">
+                            <label for="chosenClass" class="form-label fs-5 fw-medium">Select your annotation:</label>
+                            <select id="chosenClass" name="chosenClass" class="form-select form-select-lg" required>
+                                <option value="" selected disabled>-- Select a Class --</option>
+                                <option th:each="cls : ${possibleClasses}"
+                                        th:value="${cls}"
+                                        th:text="${cls}"></option>
+                            </select>
+                            <!-- Tu pourrais ajouter un th:errorclass et un div pour les erreurs ici si besoin -->
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4"> <!-- d-grid pour des boutons pleine largeur avec espacement -->
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check-circle me-2"></i>Submit Annotation
+                            </button>
+                            <a th:href="@{/annotator/dashboard}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel (Back to Dashboard)
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- Section Description du Dataset (optionnel) -->
+            <div class="card mt-4" th:if="${dataset.description != null and not #strings.isEmpty(dataset.description)}">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>Dataset Description
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted" th:text="${dataset.description}"></p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
 <div th:replace="~{fragments/footer :: footer-scripts}"></div>
 </body>
 </html>

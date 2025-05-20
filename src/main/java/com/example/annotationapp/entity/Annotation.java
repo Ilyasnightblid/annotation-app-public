@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "annotations")
@@ -35,4 +38,6 @@ public class Annotation {
         this.annotator = annotator;
         this.dataset = dataset;
     }
+    @UpdateTimestamp // Se met à jour automatiquement à chaque modification de l'entité
+    private LocalDateTime updatedAt;
 }

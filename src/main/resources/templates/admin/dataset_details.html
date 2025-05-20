@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: header-head}"></head>
-<body>
+<body class="with-fixed-navbar">
 <div th:replace="~{fragments/header :: navbar}"></div>
 <div class="container">
     <h2 th:text="'Details for Dataset: ' + ${dataset.name}">Dataset Details</h2>

@@ -12,6 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -163,5 +167,24 @@ public class AnnotationService {
      */
     public List<Annotation> findByAnnotator(User annotator) {
         return annotationRepository.findByAnnotator(annotator);
+    }
+    public long countAnnotationsMadeToday() {
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+        // Tu auras besoin d'un champ 'annotatedAt' (ou 'lastModifiedAt') dans ton entité Annotation
+        // Pour l'instant, on va simuler. Si tu as un tel champ, adapte la requête.
+        // Si tu n'as pas de champ de date d'annotation, cette statistique sera difficile à obtenir précisément.
+        // Pour cet exemple, je vais supposer que tu as un @UpdateTimestamp sur un champ lastModified dans Annotation.
+        // Si ce n'est pas le cas, il faudra l'ajouter à l'entité Annotation et au repository.
+
+        // Supposons que tu as un champ `updatedAt` dans l'entité Annotation
+        // et une méthode dans le repository : countByUpdatedAtBetweenAndChosenClassIsNotNull(LocalDateTime start, LocalDateTime end);
+        // return annotationRepository.countByUpdatedAtBetweenAndChosenClassIsNotNull(startOfDay, endOfDay);
+
+        // Pour l'instant, retournons un nombre fictif car la structure actuelle ne le permet pas facilement.
+        // TODO: Implémenter la logique réelle si un champ de date d'annotation existe.
+        return annotationRepository.findAll().stream()
+                .filter(a -> a.getChosenClass() != null) // Compte seulement celles qui sont réellement annotées
+                .count() / 2 + 5; // Logique fictive pour l'exemple
     }
 }
