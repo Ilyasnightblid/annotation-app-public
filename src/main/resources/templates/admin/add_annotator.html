@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: header-head}"></head>
-<body class="with-fixed-navbar">
+<body>
 <div th:replace="~{fragments/header :: navbar}"></div>
 <div class="container">
     <h2>Add New Annotator</h2>
@@ -21,12 +21,15 @@
             <label for="nom">Last Name:</label>
             <input type="text" id="nom" th:field="*{nom}" class="form-control" required/>
         </div>
+        <!-- SUPPRIMER CE BLOC ou le commenter -->
+        <!--
         <div class="form-group">
             <label for="password">Password:</label>
             <input type="password" id="password" th:field="*{password}" class="form-control" required/>
             <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-danger"></span>
             <small class="form-text text-muted">The password will be hashed. You can also implement auto-generation.</small>
         </div>
+        -->
         <button type="submit" class="btn btn-success">Add Annotator</button>
         <a th:href="@{/admin/annotators}" class="btn btn-secondary">Cancel</a>
     </form>

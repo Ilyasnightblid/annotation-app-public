@@ -14,9 +14,20 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
+import com.example.annotationapp.dto.PasswordChangeDto;
+import org.springframework.security.crypto.password.PasswordEncoder; // Assure-toi qu'il est injecté
+import org.springframework.validation.BindingResult; // Pour la validation
+import jakarta.validation.Valid; // Pour la validation
+
 @Controller
 @RequestMapping("/annotator")
 public class AnnotatorController {
+
+    // ... autowired fields (AnnotationService, UserRepository) ...
+    @Autowired
+    private PasswordEncoder passwordEncoder; // Injecte le PasswordEncoder
+
+    // ... getCurrentUser() et dashboard() ...
 
     @Autowired
     private AnnotationService annotationService;
@@ -78,5 +89,42 @@ public class AnnotatorController {
             return "redirect:/annotator/tasks/" + annotationId + "/annotate"; // Revenir au formulaire
         }
         return "redirect:/annotator/dashboard";
+    }
+    @GetMapping("/profile")
+    public String viewProfile(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        User currentUser = getCurrentUser(userDetails);
+        model.addAttribute("user", currentUser);
+        // Initialise l'objet pour le formulaire de changement de mot de passe
+        model.addAttribute("passwordChangeDto", new PasswordChangeDto());
+        return "annotator/profile";
+    }
+    @PostMapping("/profile/change-password")
+    public String changePassword(@ModelAttribute("passwordChangeDto") @Valid PasswordChangeDto passwordChangeDto,
+                                 BindingResult result,
+                                 @AuthenticationPrincipal UserDetails userDetails,
+                                 RedirectAttributes redirectAttributes, Model model) {
+        User currentUser = getCurrentUser(userDetails);
+        model.addAttribute("user", currentUser); // Pour réafficher le profil si erreur
+
+        if (!passwordEncoder.matches(passwordChangeDto.getCurrentPassword(), currentUser.getPassword())) {
+            result.rejectValue("currentPassword", "password.mismatch", "Current password is incorrect.");
+        }
+        if (passwordChangeDto.getNewPassword() == null || passwordChangeDto.getNewPassword().length() < 8) {
+            result.rejectValue("newPassword", "password.length", "New password must be at least 8 characters long.");
+        }
+        if (!passwordChangeDto.getNewPassword().equals(passwordChangeDto.getConfirmNewPassword())) {
+            result.rejectValue("confirmNewPassword", "password.confirmation", "New passwords do not match.");
+        }
+
+        if (result.hasErrors()) {
+            // Ré-afficher la page de profil avec les erreurs
+            return "annotator/profile";
+        }
+
+        currentUser.setPassword(passwordEncoder.encode(passwordChangeDto.getNewPassword()));
+        userRepository.save(currentUser);
+
+        redirectAttributes.addFlashAttribute("successMessage", "Password changed successfully!");
+        return "redirect:/annotator/profile";
     }
 }

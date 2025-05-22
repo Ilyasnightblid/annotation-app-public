@@ -27,14 +27,18 @@
             align-items: center;
             justify-content: center;
         }
+        /* Couleurs douces pour les fonds d'icônes */
         .stat-card .stat-icon.bg-primary-soft { background-color: rgba(var(--bs-primary-rgb), 0.1); color: var(--bs-primary); }
         .stat-card .stat-icon.bg-success-soft { background-color: rgba(var(--bs-success-rgb), 0.1); color: var(--bs-success); }
         .stat-card .stat-icon.bg-info-soft { background-color: rgba(var(--bs-info-rgb), 0.1); color: var(--bs-info); }
         .stat-card .stat-icon.bg-warning-soft { background-color: rgba(var(--bs-warning-rgb), 0.1); color: var(--bs-warning); }
+        /* Ajout d'une couleur pour la nouvelle carte */
+        .stat-card .stat-icon.bg-danger-soft { background-color: rgba(var(--bs-danger-rgb), 0.1); color: var(--bs-danger); }
+
 
         .stat-card .stat-content .stat-label {
             font-size: 0.85rem;
-            color: var(--color-text-muted);
+            color: var(--color-text-muted, #6c757d); /* Fallback color */
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 0.25rem;
@@ -42,11 +46,11 @@
         .stat-card .stat-content .stat-value {
             font-size: 2rem;
             font-weight: 700;
-            color: var(--color-text);
+            color: var(--color-text, #212529); /* Fallback color */
         }
         .chart-container {
             position: relative;
-            height: 350px; /* Ajuste la hauteur du graphique */
+            height: 350px;
             width: 100%;
         }
     </style>
@@ -55,13 +59,16 @@
 <div th:replace="~{fragments/header :: navbar}"></div>
 
 <div class="container">
-    <h1 class="mb-4">Admin Dashboard</h1>
+    <div class="d-flex justify-content-between align-items-center">
+        <h1 class="mb-4">Admin Dashboard</h1>
+        <!-- Tu peux ajouter un bouton ici si besoin, ex: nouveau dataset -->
+    </div>
     <p class="lead mb-5" sec:authorize="isAuthenticated()">
         Welcome back, <strong sec:authentication="principal.username">Administrator</strong>! Overview of your annotation projects.
     </p>
 
-    <!-- 1. Cartes de Statistiques -->
-    <div class="row mb-4 g-4"> <!-- g-4 pour gouttières (espacement) entre les colonnes -->
+    <!-- 1. Cartes de Statistiques (MISES À JOUR) -->
+    <div class="row mb-4 g-4">
         <div class="col-xl-3 col-md-6">
             <div class="card stat-card h-100">
                 <div class="card-body">
@@ -69,8 +76,8 @@
                         <i class="fas fa-database"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-label">Nombre de Datasets</div>
-                        <div class="stat-value" th:text="${datasetCount}">4</div>
+                        <div class="stat-label">Datasets</div>
+                        <div class="stat-value" th:text="${datasetCount}">0</div>
                     </div>
                 </div>
             </div>
@@ -82,46 +89,46 @@
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-label">Nombre d’Annotateurs</div>
-                        <div class="stat-value" th:text="${annotatorCount}">7</div>
+                        <div class="stat-label">Annotators</div>
+                        <div class="stat-value" th:text="${annotatorCount}">0</div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6">
+        <div class="col-xl-3 col-md-6"> <!-- NOUVELLE CARTE -->
             <div class="card stat-card h-100">
                 <div class="card-body">
                     <div class="stat-icon bg-info-soft">
-                        <i class="fas fa-pencil-alt"></i> <!-- ou fa-marker -->
+                        <i class="fas fa-tasks"></i> <!-- Icône pour les tâches totales -->
                     </div>
                     <div class="stat-content">
-                        <div class="stat-label">Annotations Today</div>
-                        <div class="stat-value" th:text="${annotationsToday}">78</div>
+                        <div class="stat-label">Total Tasks (Pairs)</div>
+                        <div class="stat-value" th:text="${totalTextPairs}">0</div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6">
+        <div class="col-xl-3 col-md-6"> <!-- NOUVELLE CARTE -->
             <div class="card stat-card h-100">
                 <div class="card-body">
-                    <div class="stat-icon bg-warning-soft">
-                        <i class="fas fa-tasks"></i> <!-- ou fa-check-double -->
+                    <div class="stat-icon bg-warning-soft"> <!-- Ou bg-danger-soft -->
+                        <i class="fas fa-check-double"></i> <!-- Icône pour les annotations complétées -->
                     </div>
                     <div class="stat-content">
-                        <div class="stat-label">Taux de complétion</div>
-                        <div class="stat-value" th:text="${globalCompletionRate}">67%</div>
+                        <div class="stat-label">Completed Annotations</div>
+                        <div class="stat-value" th:text="${totalCompletedAnnotations}">0</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 2. Diagramme de progression des datasets -->
+    <!-- 2. Diagramme de progression des datasets (RESTE IDENTIQUE) -->
     <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <i class="fas fa-chart-bar me-2"></i>Progrès des Datasets
+                    <i class="fas fa-chart-bar me-2"></i>Dataset Progress
                 </div>
                 <div class="card-body">
                     <div class="chart-container">
@@ -132,14 +139,15 @@
         </div>
     </div>
 
-    <!-- Liens rapides (ceux que tu avais avant, optionnel de les garder ici ou juste dans la navbar) -->
     <h3 class="mt-5 mb-3">Quick Actions</h3>
-    <div class="list-group">
-        <a th:href="@{/admin/datasets}" class="list-group-item list-group-item-action fs-5 py-3">
-            <i class="fas fa-database me-2"></i>Manage Datasets
+    <div class="list-group shadow-sm">
+        <a th:href="@{/admin/datasets}" class="list-group-item list-group-item-action fs-5 py-3 px-4 d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-database fa-fw me-3 text-primary"></i>Manage Datasets</span>
+            <i class="fas fa-chevron-right text-muted"></i>
         </a>
-        <a th:href="@{/admin/annotators}" class="list-group-item list-group-item-action fs-5 py-3">
-            <i class="fas fa-users-cog me-2"></i>Manage Annotators
+        <a th:href="@{/admin/annotators}" class="list-group-item list-group-item-action fs-5 py-3 px-4 d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-users-cog fa-fw me-3 text-success"></i>Manage Annotators</span>
+            <i class="fas fa-chevron-right text-muted"></i>
         </a>
     </div>
 
@@ -147,41 +155,37 @@
 
 <div th:replace="~{fragments/footer :: footer-scripts}"></div>
 
-<!-- Script pour initialiser le graphique Chart.js --><script th:inline="javascript">
+<!-- Script pour initialiser le graphique Chart.js (RESTE IDENTIQUE) -->
+<script th:inline="javascript">
     /*<![CDATA[*/
     document.addEventListener('DOMContentLoaded', function () {
         const ctx = document.getElementById('datasetProgressChart');
         if (ctx) {
-            // Récupérer les données dynamiques passées par le contrôleur
             var datasetNames = /*[[${datasetNames}]]*/ [];
             var datasetProgressValues = /*[[${datasetProgressValues}]]*/ [];
 
-            console.log("Dynamic Dataset Names:", datasetNames);
-            console.log("Dynamic Dataset Progress Values:", datasetProgressValues);
+            // Créer un dégradé pour les barres
+            const chartCanvas = ctx.getContext('2d');
+            let gradient;
+            // Attendre que le graphique soit initialisé pour obtenir chartArea
+            // Pour l'instant, on définit un dégradé simple, Chart.js l'appliquera
+            gradient = chartCanvas.createLinearGradient(0, 0, 0, ctx.height || 300); // Hauteur par défaut si non dispo
+            gradient.addColorStop(0, 'rgba(0, 123, 255, 0.8)');    // Bleu primaire Bootstrap
+            gradient.addColorStop(1, 'rgba(106, 90, 205, 0.6)');   // SlateBlue (violet clair)
 
-            if (!datasetNames || datasetNames.length === 0 || !datasetProgressValues || datasetProgressValues.length === 0) {
-                console.warn("Chart data is empty or invalid. Not rendering chart.");
-                const chartContainer = ctx.parentElement;
-                if(chartContainer) {
-                    chartContainer.innerHTML = '<p class="text-center text-muted" style="padding-top: 50px; padding-bottom: 50px;">No data available to display chart.</p>';
-                }
-                return;
-            }
-
-            // Créer un dégradé pour les barres (plus robuste)
-            const chartInstance = new Chart(ctx, {
+            new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: datasetNames,
                     datasets: [{
-                        label: '% de Complétion',
+                        label: 'Completion %',
                         data: datasetProgressValues,
-                        // Le backgroundColor sera défini dynamiquement après la création du contexte
-                        borderColor: 'rgba(75, 100, 205, 1)', // Une couleur de bordure unie
+                        backgroundColor: gradient,
+                        borderColor: 'rgba(0, 123, 255, 1)',
                         borderWidth: 1,
-                        borderRadius: 6, // Coins arrondis pour les barres
-                        barThickness: 'flex', // Laisse Chart.js gérer l'épaisseur
-                        maxBarThickness: 40 // Épaisseur maximale
+                        borderRadius: { topLeft: 5, topRight: 5, bottomLeft: 0, bottomRight: 0 }, // Coins arrondis en haut
+                        barPercentage: 0.7, // Largeur relative des barres
+                        categoryPercentage: 0.8 // Espacement entre les groupes de barres
                     }]
                 },
                 options: {
@@ -193,47 +197,25 @@
                             beginAtZero: true,
                             max: 100,
                             ticks: {
-                                callback: function(value) { return value + "%"; },
-                                color: '#6c757d', // Gris plus doux pour les ticks
-                                font: { family: "'Inter', sans-serif" }
+                                callback: function(value) { return value + "%" }
                             },
                             grid: {
-                                color: 'rgba(0,0,0,0.05)',
-                                borderColor: 'rgba(0,0,0,0.05)' // Couleur de la ligne de l'axe
+                                // color: 'rgba(0,0,0,0.05)' // Lignes de grille plus claires
                             }
                         },
                         y: {
-                            ticks: {
-                                color: '#495057', // Texte un peu plus foncé pour les labels
-                                font: { family: "'Inter', sans-serif", weight: '500' }
-                            },
-                            grid: {
-                                display: false // Cacher la grille verticale pour un look plus épuré
-                            }
+                            grid: { display: false }
                         }
                     },
                     plugins: {
-                        legend: {
-                            display: false
-                        },
+                        legend: { display: false },
                         title: {
                             display: true,
-                            text: 'Progression des Datasets (%)',
-                            font: {
-                                size: 18,
-                                family: "'Poppins', sans-serif", // Assure-toi que cette police est chargée
-                                weight: '600'
-                            },
-                            color: '#343a40', // Couleur de titre standard
-                            padding: {
-                                top: 10,
-                                bottom: 30 // Plus d'espace en dessous
-                            }
+                            text: 'Dataset Progress (%)',
+                            font: { size: 16, family: "'Poppins', sans-serif" },
+                            padding: { bottom: 20 }
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(0,0,0,0.8)',
-                            titleFont: { family: "'Poppins', sans-serif", weight: '600' },
-                            bodyFont: { family: "'Inter', sans-serif" },
                             callbacks: {
                                 label: function(context) {
                                     return context.dataset.label + ': ' + context.formattedValue + '%';
@@ -243,42 +225,6 @@
                     }
                 }
             });
-
-            // Appliquer le dégradé après l'initialisation si chartArea est disponible
-            // Cela donne à Chart.js le temps de calculer ses dimensions
-            // Fonction pour créer le dégradé
-            function createGradient(chart) {
-                const chartArea = chart.chartArea;
-                if (!chartArea) {
-                    return null; // chartArea n'est pas encore défini
-                }
-                const ctxForGradient = chart.ctx;
-                const gradient = ctxForGradient.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-                // Tes couleurs de variables CSS (assure-toi qu'elles sont accessibles ici, sinon code-les en dur)
-                // Exemple avec des couleurs codées en dur pour le dégradé
-                gradient.addColorStop(0, getComputedStyle(document.documentElement).getPropertyValue('--color-secondary').trim() || 'rgba(0, 172, 193, 0.7)'); // Utilise la variable CSS ou un fallback
-                gradient.addColorStop(1, getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || 'rgba(94, 53, 177, 0.9)');   // Utilise la variable CSS ou un fallback
-                return gradient;
-            }
-
-            // Mettre à jour le dataset avec le dégradé
-            // On peut attendre un court instant pour s'assurer que chartArea est calculé
-            // ou utiliser une bibliothèque de redimensionnement si nécessaire, mais pour l'instant, essayons directement
-            // après un petit délai pour les navigateurs plus lents ou des rendus complexes.
-            // setTimeout(() => { // Décommenter si le gradient ne s'applique pas au premier chargement
-            const gradientColor = createGradient(chartInstance);
-            if (gradientColor) {
-                chartInstance.data.datasets[0].backgroundColor = gradientColor;
-                chartInstance.update();
-            } else {
-                console.warn("Chart area not ready for gradient, using fallback color.");
-                chartInstance.data.datasets[0].backgroundColor = 'rgba(0, 123, 255, 0.7)'; // Fallback si le gradient ne peut pas être créé
-                chartInstance.update();
-            }
-            // }, 100); // Petit délai de 100ms
-
-        } else {
-            console.error("Canvas element with ID 'datasetProgressChart' not found.");
         }
     });
     /*]]>*/

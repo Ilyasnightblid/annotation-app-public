@@ -1,27 +1,91 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/header :: header-head}"></head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="fr">
+<head th:replace="~{fragments/header :: header-head}">
+    <title th:text="'Assign Annotators - ' + ${dataset.name} + ' - Annotation App'"></title>
+</head>
 <body class="with-fixed-navbar">
 <div th:replace="~{fragments/header :: navbar}"></div>
-<div class="container">
-    <h2 th:text="'Assign Annotators to Dataset: ' + ${dataset.name}">Assign Annotators</h2>
-    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
-    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-    <form th:action="@{/admin/datasets/{id}/assign(id=${dataset.id})}" method="post">
-        <div class="form-group">
-            <label for="annotatorIds">Select Annotators:</label>
-            <p class="text-muted small">Hold Ctrl (or Cmd on Mac) to select multiple annotators. Previously assigned annotators might receive more tasks if re-selected and new unassigned pairs exist.</p>
-            <select id="annotatorIds" name="annotatorIds" class="form-control" multiple="multiple" size="10" required>
-                <option th:each="annotator : ${allAnnotators}"
-                        th:value="${annotator.id}"
-                        th:text="${annotator.username + ' (' + annotator.prenom + ' ' + annotator.nom + ')'}"></option>
-            </select>
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Admin Dashboard</a></li>
+            <li class="breadcrumb-item"><a th:href="@{/admin/datasets}">Datasets</a></li>
+            <li class="breadcrumb-item"><a th:href="@{/admin/datasets/{id}(id=${dataset.id})}" th:text="${dataset.name}"></a></li>
+            <li class="breadcrumb-item active" aria-current="page">Assign Annotators</li>
+        </ol>
+    </nav>
+
+    <div class="page-header-actions"> <!-- Pour aligner titre et actions si besoin -->
+        <h1 th:text="'Assign Annotators to Dataset: ' + ${dataset.name}"></h1>
+    </div>
+
+
+    <!-- Messages Flash -->
+    <div th:if="${successMessage}" class="alert alert-success" role="alert">
+        <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-users-cog me-2"></i>Select Annotators to Assign
         </div>
-        <button type="submit" class="btn btn-success">Assign Selected Annotators</button>
-        <a th:href="@{/admin/datasets/{id}(id=${dataset.id})}" class="btn btn-secondary">Cancel</a>
-    </form>
+        <div class="card-body">
+            <form th:action="@{/admin/datasets/{id}/assign(id=${dataset.id})}" method="post">
+                <div class="mb-4"> <!-- mb-4 pour plus d'espace -->
+                    <label for="annotatorIds" class="form-label fw-medium fs-5 mb-2">Available Annotators:</label>
+
+                    <div class="alert alert-info d-flex align-items-start p-3" role="alert">
+                        <i class="fas fa-info-circle fa-lg me-3 mt-1"></i>
+                        <div>
+                            Select one or more annotators from the list below.
+                            Use <kbd>Ctrl</kbd> (or <kbd>Cmd</kbd> on Mac) + Click to select multiple individual annotators,
+                            or <kbd>Shift</kbd> + Click to select a range.
+                            <br>
+                            <small class="d-block mt-1">
+                                Tasks will be distributed among the selected annotators.
+                                Previously assigned annotators might receive more tasks if re-selected and new unassigned pairs exist.
+                            </small>
+                        </div>
+                    </div>
+
+                    <select id="annotatorIds" name="annotatorIds"
+                            class="form-select form-select-lg annotator-select-list"
+                            multiple="multiple" size="10" required>
+                        <option th:each="annotator : ${allAnnotators}"
+                                th:value="${annotator.id}"
+                                th:text="${annotator.username + ' (' + annotator.prenom + ' ' + annotator.nom + ')'}"
+                                class="py-2 px-3"> <!-- Padding pour chaque option -->
+                        </option>
+                        <option th:if="${#lists.isEmpty(allAnnotators)}" disabled>
+                            No annotators available to assign.
+                        </option>
+                    </select>
+                    <!-- Afficher un message si aucun annotateur n'est disponible, en dehors du select -->
+                    <div th:if="${#lists.isEmpty(allAnnotators)}" class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        No annotators found in the system. Please <a th:href="@{/admin/annotators/new}" class="alert-link">add annotators</a> first.
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="form-actions text-end"> <!-- text-end pour aligner à droite -->
+                    <a th:href="@{/admin/datasets/{id}(id=${dataset.id})}" class="btn btn-outline-secondary btn-lg me-2">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-lg" th:disabled="${#lists.isEmpty(allAnnotators)}">
+                        <i class="fas fa-check-circle me-2"></i>Assign Selected Annotators
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
+
 <div th:replace="~{fragments/footer :: footer-scripts}"></div>
 </body>
 </html>

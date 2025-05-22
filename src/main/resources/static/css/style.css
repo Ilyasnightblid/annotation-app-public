@@ -1,0 +1,1005 @@
+/* src/main/resources/static/css/style.css */
+
+/* Variables de Couleur et Typographie */
+:root {
+    --font-primary: 'Inter', sans-serif;
+    --font-headings: 'Poppins', sans-serif;
+
+    --color-primary: #5E35B1; /* Violet profond exemple */
+    --color-primary-dark: #4527A0;
+    --color-secondary: #00ACC1; /* Cyan exemple */
+    --color-text: #37474F;      /* Gris foncé pour texte */
+    --color-text-muted: #78909C;
+    --color-bg-light: #F5F7FA;  /* Fond de page très clair */
+    --color-bg-card: #FFFFFF;
+    --color-border: #E0E2E7;
+    --color-success: #4CAF50;
+    --color-danger: #F44336;
+    --color-warning: #FF9800;
+    --color-info: #2196F3;
+
+    --border-radius-sm: 0.25rem;
+    --border-radius-md: 0.5rem;
+    --border-radius-lg: 0.75rem;
+
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+
+    --navbar-bg-color: #4A148C; /* Exemple: Un violet foncé (Purple 900 de Material Design) */
+    --navbar-text-color: #FFFFFF; /* Texte blanc pour la navbar */
+    --navbar-link-hover-color: #E0E0E0; /* Gris clair pour le survol des liens */
+}
+
+/* ==========================================================================
+   Styles Globaux & Reset Léger
+   ========================================================================== */
+body {
+    font-family: var(--font-primary);
+    background-color: var(--color-bg-light);
+    color: var(--color-text);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased; /* Meilleur rendu des polices */
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body.with-fixed-navbar {
+    padding-top: 65px; /* Ajuste si la navbar a une hauteur fixe */
+}
+
+.container {
+    padding-top: 30px;
+    padding-bottom: 50px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-headings);
+    color: var(--color-text);
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+/* ... tailles de h1, h2 etc. spécifiques ... */
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+a:hover {
+    color: var(--color-primary-dark);
+    text-decoration: none; /* On peut enlever le soulignement au hover pour un look plus épuré */
+}
+/* Dans src/main/resources/static/css/style.css */
+/* ==========================================================================
+   Navbar (Surcharge Bootstrap)
+   ========================================================================== */
+.navbar.bg-dark { /* On surcharge la classe .bg-dark de Bootstrap que tu utilisais */
+    background-color: var(--navbar-bg-color) !important; /* Utilise ta variable !important pour surcharger */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15); /* Ombre portée plus marquée pour la navbar */
+}
+
+.navbar-brand {
+    font-family: var(--font-headings);
+    font-weight: 700 !important;
+    font-size: 1.5rem;
+    color: var(--navbar-text-color) !important; /* Texte de la marque en couleur navbar */
+}
+.navbar-brand:hover {
+    color: var(--navbar-link-hover-color) !important;
+}
+
+.navbar .nav-link {
+    font-family: var(--font-primary);
+    font-weight: 500;
+    padding: 0.8rem 1rem;
+    color: rgba(255, 255, 255, 0.85) !important; /* Couleur des liens (blanc un peu transparent) */
+    transition: color 0.2s ease-in-out;
+}
+.navbar .nav-link i { /* Icônes dans la navbar */
+    margin-right: 0.6rem;
+    opacity: 0.9; /* Rendre les icônes légèrement plus subtiles */
+}
+
+.navbar-dark .navbar-nav .nav-link.active, /* Pour Bootstrap 5, la classe active est gérée par JS ou manuellement */
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link:focus { /* Ajout de :focus */
+    color: var(--navbar-text-color) !important; /* Texte blanc plein au survol/focus/active */
+    /* background-color: rgba(255,255,255,0.1); /* Optionnel: léger fond au survol */
+}
+
+/* Style pour le bouton "toggler" (menu hamburger sur mobile) */
+.navbar-dark .navbar-toggler {
+    border-color: rgba(255,255,255,0.2); /* Bordure du toggler */
+}
+.navbar-dark .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Texte "Welcome" et bouton Logout */
+.navbar-text { /* S'applique à "Welcome, admin!" */
+    color: rgba(255,255,255,0.9) !important; /* Assure-toi que ce texte est lisible */
+}
+.navbar-text strong {
+    color: var(--navbar-text-color) !important; /* Le nom en gras en blanc plein */
+}
+
+.btn-outline-light { /* Pour le bouton Logout */
+    color: var(--navbar-text-color);
+    border-color: var(--navbar-text-color);
+    font-weight: 500;
+}
+.btn-outline-light:hover {
+    color: var(--navbar-bg-color); /* Texte de la couleur de fond de la navbar au survol */
+    background-color: var(--navbar-text-color); /* Fond blanc au survol */
+    border-color: var(--navbar-text-color);
+}
+
+/* ==========================================================================
+   Styles pour la Page de Login
+   ========================================================================== */
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 0;
+    /* Optionnel: fond dégradé (tu peux l'enlever si tu préfères un fond uni) */
+    /* background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%); */
+    background-color: var(--color-bg-light); /* Ou un fond uni si pas de dégradé */
+}
+
+.login-container {
+    max-width: 430px;
+    width: 100%;
+    padding: 15px;
+}
+
+.login-logo {
+    font-family: var(--font-headings);
+    font-size: 2.5rem; /* Plus grand */
+    font-weight: 700;
+    color: var(--color-primary); /* Utilise la couleur primaire */
+    margin-bottom: 2rem;
+    display: block;
+    text-align: center;
+}
+
+.login-card {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 2.5rem;
+}
+
+.login-card .card-title { /* C'est le h1 "Login" dans la carte */
+    font-family: var(--font-headings);
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    color: var(--color-text);
+    text-align: center;
+}
+
+.form-floating > .form-control,
+.form-floating > .form-select {
+    height: calc(3.8rem + 2px); /* Champs un peu plus hauts */
+    line-height: 1.25;
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+}
+.form-floating > .form-control:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+.btn-login {
+    font-family: var(--font-headings);
+    font-size: 1rem;
+    padding: 0.85rem 1.5rem;
+    border-radius: var(--border-radius-md);
+    font-weight: 600;
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.btn-login:hover {
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    transform: none; /* On ne veut pas le "lift" sur le bouton de login principal */
+    box-shadow: none;
+}
+
+
+/* ==========================================================================
+   Styles pour les Pages Internes (Après Login)
+   ========================================================================== */
+
+/* Cartes */
+.card {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    margin-bottom: 2rem;
+    transition: box-shadow 0.3s ease-in-out;
+}
+.card:hover { /* Effet subtil au survol des cartes */
+    box-shadow: var(--shadow-lg);
+}
+.card-header {
+    background-color: var(--color-bg-light); /* Utilise le même fond que le body ou un gris très clair */
+    border-bottom: 1px solid var(--color-border);
+    font-family: var(--font-headings);
+    font-weight: 600;
+    font-size: 1.15rem;
+    color: var(--color-text); /* Texte normal (gris foncé) au lieu de la couleur primaire */
+    padding: 1rem 1.5rem; /* Ajusté pour un meilleur padding */
+}
+.card-header i {
+    margin-right: 0.75rem;
+    color: var(--color-primary); /* L'icône peut garder la couleur primaire */
+}
+
+.card-body {
+    padding: 1.75rem;
+}
+.card-title { /* Pour les h5 dans les card-body du dashboard */
+    font-family: var(--font-headings);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 0.5rem; /* Espace au-dessus si icône présente */
+}
+
+/* Tableaux */
+.table td, .table th {
+    padding: 0.9rem 1rem; /* Ajustement du padding */
+    border-top: 1px solid var(--color-border);
+}
+
+.table tbody tr td:first-child { /* Colonne ID */
+    font-weight: 600;
+    color: var(--color-text-muted);
+    width: 5%; /* Donner une largeur fixe plus petite à la colonne ID */
+    text-align: center;
+}
+
+.table tbody tr td:nth-child(2) a { /* Colonne Name (lien) */
+    font-weight: 600; /* Nom du dataset en plus gras */
+    color: var(--color-primary);
+    font-size: 1.05em; /* Un peu plus grand */
+}
+.table tbody tr td:nth-child(2) a:hover {
+    color: var(--color-primary-dark);
+}
+
+.table tbody tr td:nth-child(3) { /* Colonne Description */
+    color: var(--color-text-muted);
+    font-size: 0.9em;
+    max-width: 300px; /* Limiter la largeur de la description pour éviter qu'elle ne s'étire trop */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Ajoute "..." si le texte est trop long */
+}
+.table tbody tr td:nth-child(3):hover { /* Afficher la description complète au survol */
+    white-space: normal;
+    overflow: visible;
+    /* Peut nécessiter un peu de JS pour un tooltip plus propre si c'est trop long */
+}
+
+
+.table tbody tr td:last-child { /* Colonne Actions */
+    width: 20%; /* Donner plus d'espace ou une largeur fixe aux actions */
+    text-align: right; /* Aligner les boutons à droite */
+    white-space: nowrap; /* Empêcher les boutons de passer à la ligne */
+}
+
+/* Barres de progression */
+.progress {
+    height: 12px !important; /* Barres de progression plus fines */
+    border-radius: var(--border-radius-sm);
+    background-color: #e9ecef;
+}
+.progress-bar {
+    font-weight: 600;
+    font-size: 0.75rem;
+    background-color: var(--color-secondary); /* Couleur secondaire pour la progression */
+    color: white; /* Texte blanc sur la barre si assez de contraste */
+    line-height: 12px; /* Pour centrer le texte verticalement */
+    text-align: center;
+}
+
+/* Boutons (styles généraux) */
+.btn {
+    font-family: var(--font-primary); /* Police pour les boutons */
+    border-radius: var(--border-radius-md);
+    padding: 0.65rem 1.3rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    transition: all 0.2s ease-in-out;
+    box-shadow: var(--shadow-sm);
+}
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+.btn:active { /* Quand on clique */
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+.btn-primary:hover {
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    color: white;
+}
+
+.btn-success {
+    background-color: var(--color-success);
+    border-color: var(--color-success);
+    color: white;
+}
+.btn-success:hover {
+    background-color: color-mix(in srgb, var(--color-success) 85%, black);
+    border-color: color-mix(in srgb, var(--color-success) 85%, black);
+    color: white;
+}
+/* ... définir .btn-info, .btn-warning de la même manière ... */
+.btn-info { background-color: var(--color-info); border-color: var(--color-info); color: white; }
+.btn-info:hover { background-color: color-mix(in srgb, var(--color-info) 85%, black); border-color: color-mix(in srgb, var(--color-info) 85%, black); color: white; }
+.btn-warning { background-color: var(--color-warning); border-color: var(--color-warning); color: #212529; } /* Texte foncé pour contraste sur jaune */
+.btn-warning:hover { background-color: color-mix(in srgb, var(--color-warning) 85%, black); border-color: color-mix(in srgb, var(--color-warning) 85%, black); color: #212529;}
+
+
+/* Alertes */
+.alert {
+    border-radius: var(--border-radius-md);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    border-left-width: 5px; /* Bordure à gauche pour accentuer */
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    box-shadow: var(--shadow-sm);
+}
+.alert-success {
+    border-left-color: var(--color-success);
+    background-color: color-mix(in srgb, var(--color-success) 15%, transparent);
+    color: color-mix(in srgb, var(--color-success) 70%, black);
+}
+.alert-danger {
+    border-left-color: var(--color-danger);
+    background-color: color-mix(in srgb, var(--color-danger) 15%, transparent);
+    color: color-mix(in srgb, var(--color-danger) 70%, black);
+}
+/* ... définir .alert-warning, .alert-info de la même manière ... */
+.alert-warning { border-left-color: var(--color-warning); background-color: color-mix(in srgb, var(--color-warning) 20%, transparent); color: color-mix(in srgb, var(--color-warning) 80%, black); }
+.alert-info { border-left-color: var(--color-info); background-color: color-mix(in srgb, var(--color-info) 15%, transparent); color: color-mix(in srgb, var(--color-info) 70%, black); }
+
+
+.alert i {
+    margin-right: 0.85rem;
+    font-size: 1.35rem;
+}
+
+/* Fil d'Ariane */
+.breadcrumb {
+    background-color: transparent;
+    padding: 0.75rem 0;
+    margin-bottom: 1.25rem;
+    font-size: 0.9rem;
+}
+.breadcrumb-item a {
+    color: var(--color-primary);
+}
+.breadcrumb-item.active {
+    color: var(--color-text-muted);
+
+}
+.progress {
+    height: 22px !important; /* Hauteur personnalisée */
+    border-radius: var(--border-radius-md); /* Utilisation de notre variable */
+    background-color: #e9ecef;
+    overflow: hidden; /* Important pour que les coins arrondis de la barre interne fonctionnent */
+    position: relative; /* Pour positionner le texte à l'intérieur */
+}
+.progress-bar {
+    font-weight: 600;
+    font-size: 0.8rem; /* Taille du texte dans la barre */
+    background-color: var(--color-secondary); /* Ou var(--color-primary) */
+    color: white;
+    display: flex; /* Pour centrer le texte */
+    align-items: center;
+    justify-content: center; /* Centrer le texte horizontalement */
+    transition: width 0.6s ease; /* Animation douce du changement de largeur */
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.2); /* Ombre subtile sur le texte */
+    white-space: nowrap; /* Empêcher le texte de passer à la ligne */
+}
+.progress-bar-text {
+    /* Le texte est déjà centré par flexbox sur .progress-bar */
+    /* Si le texte est trop long pour la barre (ex: 5%), on peut le cacher ou l'afficher à l'extérieur */
+    /* Pour l'instant, on le laisse dedans. Si la barre est très petite, le texte sera coupé. */
+}
+
+/* Optionnel : changer la couleur de la barre en fonction du pourcentage */
+.progress-bar[aria-valuenow^="100"] { /* Si commence par 100 (pour 100.00%) */
+    background-color: var(--color-success) !important; /* Vert pour complété */
+}
+.progress-bar[aria-valuenow^="0"] { /* Si commence par 0 */
+    /* Peut-être pas de texte visible si 0% ou une couleur très claire */
+}
+/* Dans src/main/resources/static/css/style.css */
+
+/* Pour le titre H1 "Admin Dashboard" et le "Datasets Overview" */
+h1.mb-4 { /* Ou .page-title si tu veux une classe dédiée */
+    color: var(--color-primary); /* Utilise la couleur primaire pour le titre principal de la page */
+    font-weight: 700; /* Plus affirmé */
+    border-bottom: 2px solid var(--color-secondary); /* Ligne de soulignement avec la couleur secondaire */
+    padding-bottom: 0.5rem;
+    display: inline-block; /* Pour que la bordure ne prenne pas toute la largeur */
+}
+
+/* Ajustement pour le bouton "Create New Dataset" à côté du titre */
+.page-header-actions { /* Enveloppe le H1 et le bouton dans un div avec cette classe */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem; /* Espace avant le contenu principal */
+}
+/* Dans style.css ou dans le <style> de dashboard_admin.html */
+.chart-container {
+    position: relative;
+    min-height: 350px; /* Hauteur minimale */
+    height: 40vh; /* Hauteur relative à la hauteur de la fenêtre, par exemple */
+    width: 100%;
+    padding: 10px; /* Un peu d'espace autour du canvas */
+}
+/* Dans src/main/resources/static/css/style.css */
+
+/* ... tes styles existants ... */
+
+/* Styles pour les formulaires dans des cartes (peut être générique) */
+.card-form .card-header { /* Si tu veux un style un peu différent pour les headers de carte de formulaire */
+    /* background-color: var(--color-primary-soft); */ /* Exemple */
+    /* color: var(--color-primary); */
+}
+
+.card-form .form-floating > label i { /* Style pour les icônes dans les labels flottants */
+    margin-right: 0.5rem;
+    color: var(--color-text-muted);
+    width: 16px; /* Pour un alignement cohérent */
+    text-align: center;
+}
+
+/* Améliorer le style des messages d'erreur de validation sous les champs */
+.invalid-feedback {
+    font-size: 0.875em;
+    font-weight: 500;
+    /* display: block !important; /* Pour s'assurer qu'ils sont toujours visibles si Bootstrap les cache parfois */
+}
+
+/* Style pour les hr dans les formulaires */
+hr.my-4 {
+    border-top: 1px solid var(--color-border);
+}
+
+/* Titre pour la section de changement de mot de passe */
+.card-form h5.text-muted {
+    font-family: var(--font-primary);
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-text-muted) !important; /* Forcer la couleur si surchargée */
+}
+.card-form h5.text-muted i {
+    color: var(--color-text-muted); /* Icône aussi en gris */
+}
+
+/* Conteneur des boutons d'action du formulaire */
+.form-actions { /* Tu peux envelopper les boutons dans un div avec cette classe si besoin de plus de style */
+    /* border-top: 1px solid var(--color-border); */
+    /* padding-top: 1.5rem; */
+    /* margin-top: 1.5rem; */
+}
+/* Styles spécifiques pour la page d'annotation (peuvent aller dans style.css) */
+.text-display-card .card-body { /* Pour la carte qui affiche Text1 et Text2 */
+    max-height: 400px; /* Augmenté un peu la hauteur max */
+    overflow-y: auto;
+}
+
+.text-content { /* Pour les paragraphes p qui contiennent Text1 et Text2 */
+    font-size: 1rem; /* Ajusté pour une meilleure proportion */
+    line-height: 1.7;
+    white-space: pre-wrap;
+    padding: 15px; /* Un peu plus de padding */
+    background-color: #f8f9fa; /* Couleur de fond légèrement différente du corps de la carte */
+    border-radius: var(--border-radius-md); /* Utilise la variable CSS pour le radius */
+    border: 1px solid var(--color-border);
+    margin-bottom: 1.25rem; /* Espace entre Text1 et Text2 */
+}
+.text-content:last-child { /* Pour le dernier bloc de texte dans une section */
+    margin-bottom: 0;
+}
+
+.text-label { /* Pour les labels "Text 1:", "Text 2:" */
+    font-weight: 600;
+    color: var(--color-text); /* Texte normal, pas la couleur primaire ici pour moins de distraction */
+    margin-bottom: 0.5rem;
+    display: block;
+    font-size: 0.9rem;
+    text-transform: uppercase; /* Optionnel */
+    letter-spacing: 0.5px;
+}
+
+/* Style pour le select */
+.form-select-lg { /* Classe Bootstrap pour un select plus grand */
+    font-size: 1.1rem;
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+    border-radius: var(--border-radius-md);
+}
+/* Dans src/main/resources/static/css/style.css */
+
+/* ... tes styles existants ... */
+
+/* Style pour le titre du dashboard annotateur */
+/* .page-header-actions h1 i { /* Si tu veux une couleur spécifique pour l'icône du titre */
+/*    color: var(--color-secondary); */
+/* } */
+
+/* Amélioration pour les previews de texte dans le tableau des tâches */
+.table td.small.text-muted {
+    font-style: italic; /* Optionnel: mettre les previews en italique */
+}
+
+/* Style pour le message "No pending tasks" */
+.text-center.py-5 i.fa-check-double { /* Pour l'icône du message "pas de tâches" */
+    opacity: 0.7;
+}
+.text-center.py-5 h4 {
+    color: var(--color-text-muted);
+}
+/* Dans src/main/resources/static/css/style.css */
+
+/* ... tes styles existants ... */
+
+/* Styles pour la liste de sélection des annotateurs */
+.annotator-select-list {
+    min-height: 200px; /* Hauteur minimale pour la liste */
+    max-height: 400px; /* Hauteur maximale avec scroll */
+    border-radius: var(--border-radius-md); /* Utilise la variable Bootstrap si possible, sinon 0.5rem */
+    padding: 0.5rem; /* Padding interne au select */
+    border: 1px solid var(--color-border); /* Utilise ta variable de bordure */
+}
+
+/* Style de chaque option dans le select multiple */
+.annotator-select-list option {
+    padding: 0.6rem 0.85rem; /* Padding pour chaque option */
+    border-bottom: 1px solid #f0f0f0; /* Séparateur léger entre options */
+    cursor: pointer; /* Indiquer que c'est cliquable */
+    transition: background-color 0.15s ease-in-out;
+}
+
+.annotator-select-list option:last-child {
+    border-bottom: none; /* Pas de bordure pour le dernier élément */
+}
+
+.annotator-select-list option:hover {
+    background-color: var(--color-bg-light); /* Utilise la variable CSS --color-bg-light */
+}
+
+/* Style des options sélectionnées (le rendu exact peut varier entre navigateurs) */
+.annotator-select-list option:checked,
+.annotator-select-list option:active { /* État actif aussi */
+    background-color: color-mix(in srgb, var(--color-primary) 20%, transparent) !important; /* Couleur primaire en fond léger, !important peut être nécessaire */
+    color: var(--color-primary-dark) !important;
+    font-weight: 500 !important;
+    outline: none; /* Enlever l'outline par défaut si présent */
+}
+
+/* Améliorer le focus sur le select lui-même */
+.annotator-select-list:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+/* Utilisation de <kbd> pour les touches clavier */
+kbd {
+    padding: .2rem .4rem;
+    font-size: .80em; /* Un peu plus petit */
+    color: var(--bs-body-bg);
+    background-color: var(--bs-body-color);
+    border-radius: .25rem;
+    font-family: monospace; /* Police monospace pour les touches */
+    box-shadow: inset 0 -0.1rem 0 #444;
+}
+
+/* Dans src/main/resources/static/css/style.css */
+
+/* ... tes styles existants ... */
+
+/* Styles pour la liste d'informations du dataset */
+.dataset-info-list dt {
+    font-weight: 600;
+    color: var(--color-text-muted); /* Utilise ta variable de couleur */
+    font-size: 0.9rem; /* Un peu plus petit pour les labels */
+    margin-bottom: 0.25rem;
+}
+.dataset-info-list dd {
+    margin-bottom: 1rem; /* Espace entre les items */
+    font-size: 1rem;
+    word-break: break-word; /* Pour que les descriptions longues ne cassent pas le layout */
+}
+.dataset-info-list dd .badge { /* Badges pour les classes possibles */
+    font-size: 0.85em;
+    padding: 0.4em 0.65em;
+}
+
+/* Conteneur pour la table des Text Pairs avec scroll */
+.text-pair-table-container {
+    max-height: 450px; /* Augmenté un peu la hauteur */
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md); /* Utilise ta variable de coins arrondis */
+    margin-top: 1rem; /* Espace au-dessus de la table si elle est directement dans card-body */
+}
+
+/* Ajustements pour les tables à l'intérieur de card-body */
+.card-body .table {
+    margin-bottom: 0; /* Enlever la marge du bas si c'est le dernier élément */
+}
+
+/* Styles pour la page de détails (si .page-header-actions est utilisé) */
+.page-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem; /* Espace avant le contenu principal */
+}
+.page-header-actions h1 {
+    margin-bottom: 0; /* Enlever la marge du H1 s'il est dans ce flex container */
+}
+
+/* Barre de progression (styles déjà définis mais assure-toi qu'ils sont cohérents) */
+.progress-bar-text { /* Assure-toi que ce style existe si tu l'utilises */
+    /* Centré par flex sur .progress-bar, mais tu peux ajouter: */
+    width: 100%;
+    text-align: center;
+    color: white; /* Assure-toi que c'est lisible */
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Dans src/main/resources/static/css/style.css */
+
+/* ... tes styles existants ... */
+
+/* Styles pour les formulaires */
+.form-label.fw-medium { /* Pour les labels qui ne sont pas "floating" */
+    font-weight: 500; /* Ou 600 si tu préfères plus gras */
+    margin-bottom: 0.5rem;
+    font-size: 1rem; /* Taille de label standard */
+}
+
+/* Le style de base de .form-control de Bootstrap 5 est déjà assez bon */
+.form-control, .form-select {
+    border-radius: var(--border-radius-md); /* Coins arrondis cohérents */
+    border: 1px solid var(--color-border);
+    padding: 0.75rem 1rem; /* Bon padding interne */
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+/* Pour les messages d'aide sous les champs */
+.form-text {
+    font-size: 0.875em;
+    color: var(--color-text-muted);
+    margin-top: 0.35rem; /* Espace au-dessus du texte d'aide */
+}
+
+/* Pour les messages d'erreur de validation (Bootstrap .invalid-feedback) */
+.invalid-feedback {
+    font-weight: 500; /* Erreurs un peu plus visibles */
+}
+.invalid-feedback.d-block { /* S'assurer qu'il prend de la place même si le champ est inline */
+    display: block !important;
+}
+
+/* Style pour le champ d'upload de fichier */
+input[type="file"].form-control {
+    padding: 0.6rem 0.85rem; /* Ajuster le padding pour l'input file */
+}
+input[type="file"].form-control::file-selector-button { /* Style du bouton "Choisir un fichier" */
+    margin-right: 0.85rem;
+    padding: 0.6rem 0.85rem;
+    border: none;
+    background-color: var(--color-primary);
+    color: white;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+input[type="file"].form-control::file-selector-button:hover {
+    background-color: var(--color-primary-dark);
+}
+/* Dans style.css */
+.form-floating > label {
+    padding: 1rem 0.75rem; /* Maintenir le padding de Bootstrap */
+    display: flex;         /* Activer flexbox */
+    align-items: center;   /* Centrer verticalement les items (icône et texte) */
+    width: 100%;           /* S'assurer que le label prend toute la largeur */
+    height: 100%;          /* S'assurer que le label prend toute la hauteur du conteneur flottant */
+    pointer-events: none;  /* Permettre de cliquer "à travers" le label sur l'input */
+    border: 1px solid transparent; /* Pour le positionnement, ne sera pas visible */
+    transform-origin: 0 0;
+    transition: opacity .1s ease-in-out,transform .1s ease-in-out; /* Transitions Bootstrap */
+}
+
+.form-floating > label i.fas { /* Cible spécifiquement les icônes Font Awesome */
+    margin-right: 0.5rem; /* Espace entre l'icône et le texte du label */
+    /* Tu peux ajuster la taille de l'icône ici si elle est trop grande ou petite */
+    /* font-size: 0.9em; */
+}
+
+/* Quand l'input est focus ou a une valeur, le label flotte en haut. */
+/* On doit s'assurer que l'icône reste alignée ou se comporte bien. */
+/* Les styles Bootstrap par défaut pour .form-floating > label après focus/valeur sont complexes. */
+/* Il faudra peut-être ajuster le 'transform' ou le 'padding' du label dans cet état si l'icône pose problème. */
+
+/* Pour s'assurer que le placeholder ne se superpose pas au label flottant avec icône */
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+    /* Styles Bootstrap par défaut s'appliquent ici, pas besoin de surcharger pour l'instant */
+}
+.form-floating > .form-control:focus ~ label {
+    /* Styles Bootstrap par défaut s'appliquent ici */
+}
+/* CSS pour le formulaire de création de dataset */
+
+/* Styles généraux */
+.with-fixed-navbar {
+    padding-top: 20px;
+}
+
+.page-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0;
+}
+
+/* Carte dataset */
+.dataset-card {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin-bottom: 30px;
+}
+
+.dataset-card .card-header {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+    font-weight: 600;
+    padding: 15px 20px;
+    border-bottom: none;
+}
+
+.dataset-card .card-body {
+    padding: 30px;
+}
+
+/* Inputs et form controls */
+.custom-input {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.input-group-hover:hover .custom-input {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.1);
+}
+
+.custom-input:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.form-floating label {
+    color: #6c757d;
+}
+
+.form-floating .form-control:focus ~ label {
+    color: #4e73df;
+}
+
+/* Upload de fichier */
+.file-upload-container {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px dashed #ccc;
+    transition: all 0.3s ease;
+}
+
+.file-upload-container:hover {
+    border-color: #4e73df;
+    background-color: #f0f4ff;
+}
+
+.custom-file-input {
+    border: 1px solid #ddd;
+    padding: 15px;
+    background-color: white;
+}
+
+.custom-file-input:hover {
+    border-color: #4e73df;
+}
+
+/* Séparateur */
+.separator {
+    border-top: 1px solid #edf0f5;
+    opacity: 0.5;
+}
+
+/* Boutons d'action */
+.btn-action {
+    padding: 10px 20px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    border: none;
+    box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #3a5fc8 0%, #1c3ea0 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+    color: #495057;
+    border-color: #ddd;
+}
+
+/* Information et messages d'aide */
+.form-text {
+    font-size: 0.85rem;
+}
+
+.text-info {
+    color: #4e73df !important;
+}
+
+/* Styles pour les messages d'alerte */
+.alert {
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dataset-card .card-body {
+        padding: 20px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .page-header-actions {
+        margin-top: 15px;
+    }
+}
+/* src/main/resources/static/css/style.css */
+
+/* ... tes variables CSS (:root) et styles globaux existants ... */
+
+/* ==========================================================================
+   Styles spécifiques à la page d'assignation des annotateurs (ou formulaires en général)
+   ========================================================================== */
+
+/* Instructions avec icône */
+.alert-info i.fa-lg { /* Pour l'icône d'info un peu plus grande */
+    font-size: 1.5rem; /* Ajuste selon tes préférences */
+}
+
+/* Style pour la liste de sélection multiple des annotateurs */
+.annotator-select-list {
+    min-height: 250px; /* Hauteur minimale augmentée */
+    max-height: 450px; /* Hauteur maximale avec scroll */
+    border-radius: var(--border-radius-md);
+    padding: 0; /* Pas de padding sur le select lui-même, on le met sur les options */
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-card); /* Fond blanc */
+    font-size: 1rem; /* Taille de police pour les options */
+}
+
+/* Style de chaque option dans le select multiple */
+.annotator-select-list option {
+    padding: 0.75rem 1.25rem; /* Plus de padding pour chaque option */
+    border-bottom: 1px solid var(--color-border); /* Séparateur plus visible */
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+.annotator-select-list option:last-child {
+    border-bottom: none;
+}
+
+.annotator-select-list option:hover {
+    background-color: color-mix(in srgb, var(--color-primary) 10%, transparent); /* Couleur primaire très légère au survol */
+    color: var(--color-primary-dark);
+}
+
+/* Style des options sélectionnées (peut être difficile à surcharger de manière cross-browser pour <select multiple>) */
+/* Les navigateurs ont tendance à imposer leur propre style pour les options sélectionnées.
+   Pour un contrôle total, il faudrait un composant JS custom. */
+.annotator-select-list option:checked {
+    background-color: var(--color-primary) !important; /* Couleur primaire en fond */
+    color: white !important; /* Texte blanc */
+    font-weight: 500 !important;
+}
+.annotator-select-list option[disabled] { /* Pour l'option "No annotators available" */
+    color: var(--color-text-muted);
+    font-style: italic;
+    background-color: var(--color-bg-light);
+    cursor: not-allowed;
+}
+
+
+/* Focus sur la liste */
+.annotator-select-list:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--color-primary) 25%, transparent);
+    outline: none; /* Important pour enlever l'outline par défaut du navigateur sur le focus */
+}
+
+
+/* Utilisation de <kbd> pour afficher les touches clavier (Ctrl, Cmd) */
+kbd {
+    padding: .25rem .5rem; /* Padding ajusté */
+    font-size: .85em;     /* Taille ajustée */
+    color: var(--color-text); /* Texte de la couleur du corps */
+    background-color: color-mix(in srgb, var(--color-border) 50%, white); /* Fond gris très clair */
+    border: 1px solid color-mix(in srgb, var(--color-border) 70%, black); /* Bordure subtile */
+    border-radius: var(--border-radius-sm);
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; /* Police monospace */
+    box-shadow: inset 0 -0.1em 0 color-mix(in srgb, var(--color-border) 60%, black); /* Ombre interne pour effet 3D */
+    margin: 0 0.1em; /* Petit espace autour */
+}
+
+/* Boutons d'action du formulaire */
+.form-actions {
+    margin-top: 2rem; /* Espace au-dessus des boutons */
+}
+.form-actions .btn-lg { /* S'assurer que les boutons sont bien grands */
+    padding: 0.8rem 1.8rem; /* Padding pour les gros boutons */
+    font-size: 1.05rem;
+}
+.form-actions .btn-outline-secondary { /* Style pour le bouton Annuler */
+    border-color: var(--color-text-muted);
+    color: var(--color-text-muted);
+}
+.form-actions .btn-outline-secondary:hover {
+    background-color: var(--color-text-muted);
+    color: var(--color-bg-card); /* Texte blanc sur fond gris au survol */
+}
+
+
+/* Styles généraux (s'assurer qu'ils sont présents de tes fichiers précédents) */
+/* ... (inclure les styles pour .page-header-actions, .alert, .card, .card-header, .card-body, .btn, etc.) ... */

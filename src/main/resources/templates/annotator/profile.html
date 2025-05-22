@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="fr">
+<head th:replace="~{fragments/header :: header-head}">
+    <title>My Profile - Annotation App</title>
+</head>
+<body class="with-fixed-navbar">
+<div th:replace="~{fragments/header :: navbar}"></div>
+
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/annotator/dashboard}">My Tasks</a></li>
+            <li class="breadcrumb-item active" aria-current="page">My Profile</li>
+        </ol>
+    </nav>
+
+    <h1>My Profile</h1>
+
+    <!-- Messages Flash -->
+    <div th:if="${successMessage}" class="alert alert-success" role="alert">
+        <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+    </div>
+
+    <div class="row">
+        <!-- Informations du profil -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><i class="fas fa-user-circle me-2"></i>Profile Information</div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Username (Login):</dt>
+                        <dd class="col-sm-8" th:text="${user.username}"></dd>
+
+                        <dt class="col-sm-4">First Name:</dt>
+                        <dd class="col-sm-8" th:text="${user.prenom}"></dd>
+
+                        <dt class="col-sm-4">Last Name:</dt>
+                        <dd class="col-sm-8" th:text="${user.nom}"></dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire de changement de mot de passe -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><i class="fas fa-key me-2"></i>Change Password</div>
+                <div class="card-body">
+                    <form th:action="@{/annotator/profile/change-password}" th:object="${passwordChangeDto}" method="post">
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label">Current Password:</label>
+                            <input type="password" id="currentPassword" th:field="*{currentPassword}"
+                                   class="form-control" th:errorclass="is-invalid" required />
+                            <div th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}" class="invalid-feedback"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">New Password:</label>
+                            <input type="password" id="newPassword" th:field="*{newPassword}"
+                                   class="form-control" th:errorclass="is-invalid" required />
+                            <div th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}" class="invalid-feedback"></div>
+                            <small class="form-text text-muted">Must be at least 8 characters long.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmNewPassword" class="form-label">Confirm New Password:</label>
+                            <input type="password" id="confirmNewPassword" th:field="*{confirmNewPassword}"
+                                   class="form-control" th:errorclass="is-invalid" required />
+                            <div th:if="${#fields.hasErrors('confirmNewPassword')}" th:errors="*{confirmNewPassword}" class="invalid-feedback"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Change Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer-scripts}"></div>
+</body>
+</html>

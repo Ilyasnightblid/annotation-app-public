@@ -6,7 +6,8 @@ import com.example.annotationapp.entity.TextPair;
 import com.example.annotationapp.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,4 +22,5 @@ public interface AnnotationRepository extends JpaRepository<Annotation, Long> {
     List<Annotation> findByAnnotatorAndChosenClassIsNull(User annotator);
     Optional<Annotation> findByTextPairAndDataset(TextPair textPair, Dataset dataset);
     boolean existsByTextPairAndDatasetAndAnnotatorIsNotNull(TextPair textPair, Dataset dataset);
+    long countByChosenClassIsNotNull(); // <<< AJOUTER CETTE MÉTHODE
 }

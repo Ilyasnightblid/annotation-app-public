@@ -1,84 +1,196 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/header :: header-head}"></head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="fr">
+<head th:replace="~{fragments/header :: header-head}">
+    <title th:text="'Details: ' + ${dataset.name} + ' - Annotation App'"></title>
+    <style>
+        /* Styles spécifiques à cette page si besoin, en plus de style.css */
+        .dataset-info-list dt { /* Pour les termes de définition (ID, Name, etc.) */
+            font-weight: 600;
+            color: var(--color-text-muted);
+            padding-bottom: 0.3rem;
+        }
+        .dataset-info-list dd {
+            margin-bottom: 0.8rem;
+            font-size: 1.05rem;
+        }
+        .text-pair-table-container {
+            max-height: 400px; /* Hauteur max pour la table des text pairs avec scroll */
+            overflow-y: auto;
+            border: 1px solid var(--color-border);
+            border-radius: var(--bs-border-radius-md);
+        }
+    </style>
+</head>
 <body class="with-fixed-navbar">
 <div th:replace="~{fragments/header :: navbar}"></div>
+
 <div class="container">
-    <h2 th:text="'Details for Dataset: ' + ${dataset.name}">Dataset Details</h2>
-    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
-    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Admin Dashboard</a></li>
+            <li class="breadcrumb-item"><a th:href="@{/admin/datasets}">Datasets</a></li>
+            <li class="breadcrumb-item active" aria-current="page" th:text="${dataset.name}"></li>
+        </ol>
+    </nav>
 
-    <p><strong>ID:</strong> <span th:text="${dataset.id}"></span></p>
-    <p><strong>Name:</strong> <span th:text="${dataset.name}"></span></p>
-    <p><strong>Description:</strong> <span th:text="${dataset.description}"></span></p>
-    <p><strong>Possible Classes:</strong> <span th:text="${dataset.possibleClasses}"></span></p>
-    <p><strong>Avancement:</strong> <span th:text="${progressPercentage} + '%'"></span></p>
-
-
-    <hr>
-    <h4>Text Pairs (<span th:text="${#lists.size(textPairs)}"></span>)</h4>
-    <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 20px;">
-        <table class="table table-sm">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Text1</th>
-                <th>Text2</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="pair : ${textPairs}">
-                <td th:text="${pair.id}"></td>
-                <td th:text="${#strings.abbreviate(pair.text1, 70)}"></td>
-                <td th:text="${#strings.abbreviate(pair.text2, 70)}"></td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(textPairs)}">
-                <td colspan="3" class="text-center">No text pairs in this dataset.</td>
-            </tr>
-            </tbody>
-        </table>
+    <div class="page-header-actions"> <!-- Utilise la classe définie dans style.css si tu l'as -->
+        <h1 th:text="'Details for Dataset: ' + ${dataset.name}">Dataset Details</h1>
+        <a th:href="@{/admin/datasets}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Datasets List
+        </a>
     </div>
 
-    <hr>
-    <h4>Assigned Annotators & Their Work</h4>
-    <a th:href="@{/admin/datasets/{id}/assign(id=${dataset.id})}" class="btn btn-primary mb-3">Assign/Modify Annotators</a>
-    <table class="table table-bordered">
-        <thead>
-        <tr>
-            <th>Annotator</th>
-            <th>Text Pair ID</th>
-            <th>Chosen Class</th>
-            <th>Action</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- It's better to iterate through annotations and group by annotator if needed,
-             or just list annotations directly if the view is simpler -->
-        <tr th:each="annotation : ${annotations}" th:if="${annotation.annotator != null}">
-            <td th:text="${annotation.annotator.username}"></td>
-            <td th:text="${annotation.textPair.id}"></td>
-            <td th:text="${annotation.chosenClass != null ? annotation.chosenClass : 'Pending'}"></td>
-            <td>
-                <form th:if="${annotation.chosenClass == null}"
-                      th:action="@{/admin/annotations/{annotationId}/deassign(annotationId=${annotation.id})}"
-                      method="post" style="display:inline;">
-                    <input type="hidden" name="datasetId" th:value="${dataset.id}" />
-                    <button type="submit" class="btn btn-warning btn-sm"
-                            onclick="return confirm('Are you sure you want to de-assign this pending task from this annotator? The task will become unassigned.')">
-                        De-assign Task
-                    </button>
-                </form>
-                <span th:if="${annotation.chosenClass != null}" class="text-muted">Completed</span>
-            </td>
-        </tr>
-        <tr th:if="${#lists.isEmpty(annotations) or #lists.isEmpty(assignedAnnotators)}">
-            <td colspan="4" class="text-center">No annotators assigned or no annotations yet for this dataset.</td>
-        </tr>
-        </tbody>
-    </table>
+    <!-- Messages Flash -->
+    <div th:if="${successMessage}" class="alert alert-success" role="alert">
+        <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+    </div>
 
-    <a th:href="@{/admin/datasets}" class="btn btn-secondary mt-3">Back to Datasets List</a>
+    <div class="row">
+        <!-- Colonne pour les informations du Dataset -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>Dataset Information
+                </div>
+                <div class="card-body">
+                    <dl class="dataset-info-list">
+                        <dt>ID:</dt>
+                        <dd th:text="${dataset.id}"></dd>
+
+                        <dt>Name:</dt>
+                        <dd th:text="${dataset.name}"></dd>
+
+                        <dt>Description:</dt>
+                        <dd th:text="${dataset.description != null and not #strings.isEmpty(dataset.description) ? dataset.description : 'N/A'}"
+                            style="white-space: pre-wrap;"></dd> <!-- pre-wrap pour conserver les sauts de ligne de la description -->
+
+                        <dt>Possible Classes:</dt>
+                        <dd>
+                                <span th:each="cls, iterStat : ${dataset.getClassesAsList()}"
+                                      class="badge bg-secondary me-1 mb-1"
+                                      th:text="${cls}"
+                                      th:style="${iterStat.index % 3 == 0 ? 'background-color: var(--color-primary) !important;' : (iterStat.index % 3 == 1 ? 'background-color: var(--color-secondary) !important;' : 'background-color: #6c757d !important;')}">
+                                </span>
+                            <span th:if="${#lists.isEmpty(dataset.getClassesAsList())}">N/A</span>
+                        </dd>
+
+                        <dt>Avancement:</dt>
+                        <dd>
+                            <div class="progress" style="height: 25px; background-color: #e9ecef;">
+                                <div class="progress-bar" role="progressbar"
+                                     th:style="'width: ' + ${#strings.replace(progressPercentage, ',', '.')} + ';'"
+                                     th:attr="aria-valuenow=${#strings.replace(#strings.replace(progressPercentage, '%', ''), ',', '.')}"
+                                     aria-valuemin="0" aria-valuemax="100">
+                                    <span class="progress-bar-text" th:text="${progressPercentage}"></span>
+                                </div>
+                            </div>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colonne pour les Text Pairs -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="fas fa-stream me-2"></i>Text Pairs
+                    <span class="badge rounded-pill bg-primary ms-2" th:text="${#lists.size(textPairs)}"></span>
+                </div>
+                <div class="card-body">
+                    <div class="text-pair-table-container">
+                        <table class="table table-sm table-hover"> <!-- table-sm pour une table plus compacte -->
+                            <thead>
+                            <tr>
+                                <th style="width: 10%;">ID</th>
+                                <th>Text1 (Preview)</th>
+                                <th>Text2 (Preview)</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="pair : ${textPairs}">
+                                <td th:text="${pair.id}" class="text-center"></td>
+                                <td th:text="${#strings.abbreviate(pair.text1, 80)}"
+                                    th:title="${pair.text1}"></td> <!-- Tooltip avec le texte complet -->
+                                <td th:text="${#strings.abbreviate(pair.text2, 80)}"
+                                    th:title="${pair.text2}"></td> <!-- Tooltip avec le texte complet -->
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(textPairs)}">
+                                <td colspan="3" class="text-center text-muted py-4">
+                                    <i class="fas fa-file-alt fa-2x mb-2"></i><br>
+                                    No text pairs in this dataset.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section des Annotateurs Assignés -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <i class="fas fa-users me-2"></i>Assigned Annotators & Their Work
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <a th:href="@{/admin/datasets/{id}/assign(id=${dataset.id})}" class="btn btn-primary">
+                    <i class="fas fa-user-plus me-2"></i>Assign/Modify Annotators
+                </a>
+            </div>
+
+            <table class="table table-hover" th:if="${not #lists.isEmpty(annotations) and not #lists.isEmpty(assignedAnnotators)}">
+                <thead>
+                <tr>
+                    <th>Annotator</th>
+                    <th>Text Pair ID</th>
+                    <th>Chosen Class</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="annotation : ${annotations}" th:if="${annotation.annotator != null}">
+                    <td th:text="${annotation.annotator.username}"></td>
+                    <td th:text="${annotation.textPair.id}"></td>
+                    <td>
+                                <span th:if="${annotation.chosenClass != null}"
+                                      class="badge"
+                                      th:classappend="${annotation.chosenClass == 'Positive' ? 'bg-success' : (annotation.chosenClass == 'Negative' ? 'bg-danger' : (annotation.chosenClass == 'Neutre' ? 'bg-secondary' : 'bg-info'))}"
+                                      th:text="${annotation.chosenClass}">
+                                </span>
+                        <span th:unless="${annotation.chosenClass != null}" class="text-muted fst-italic">Pending</span>
+                    </td>
+                    <td>
+                        <form th:if="${annotation.chosenClass == null}"
+                              th:action="@{/admin/annotations/{annotationId}/deassign(annotationId=${annotation.id})}"
+                              method="post" style="display:inline;">
+                            <input type="hidden" name="datasetId" th:value="${dataset.id}" />
+                            <button type="submit" class="btn btn-outline-warning btn-sm"
+                                    onclick="return confirm('Are you sure you want to de-assign this pending task from this annotator? The task will become unassigned.')"
+                                    title="De-assign this pending task">
+                                <i class="fas fa-user-times"></i> De-assign
+                            </button>
+                        </form>
+                        <span th:if="${annotation.chosenClass != null}" class="badge bg-light text-dark border">
+                                    <i class="fas fa-check-circle text-success me-1"></i>Completed
+                                </span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div th:if="${#lists.isEmpty(annotations) or #lists.isEmpty(assignedAnnotators)}" class="text-center text-muted py-4">
+                <i class="fas fa-users-slash fa-2x mb-2"></i><br>
+                No annotators assigned or no annotations yet for this dataset.
+            </div>
+        </div>
+    </div>
 </div>
+
 <div th:replace="~{fragments/footer :: footer-scripts}"></div>
 </body>
 </html>
