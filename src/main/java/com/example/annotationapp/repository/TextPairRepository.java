@@ -16,4 +16,6 @@ public interface TextPairRepository extends JpaRepository<TextPair, Long> {
     // ou dont l'annotation n'a pas encore d'annotateur assigné
     @Query("SELECT tp FROM TextPair tp WHERE tp.dataset = :dataset AND tp.id NOT IN (SELECT a.textPair.id FROM Annotation a WHERE a.dataset = :dataset AND a.annotator IS NOT NULL)")
     List<TextPair> findUnassignedTextPairsByDataset(Dataset dataset);
+    // AJOUTER CETTE MÉTHODE :
+    long countByDataset(Dataset dataset);
 }

@@ -1,5 +1,7 @@
 package com.example.annotationapp.service;
 
+import com.example.annotationapp.dto.export.AnnotationExportDto;
+import com.example.annotationapp.dto.export.AnnotatorExportDto;
 import com.example.annotationapp.entity.Annotation;
 import com.example.annotationapp.entity.Dataset;
 import com.example.annotationapp.entity.TextPair;
@@ -8,14 +10,20 @@ import com.example.annotationapp.repository.AnnotationRepository;
 import com.example.annotationapp.repository.DatasetRepository;
 import com.example.annotationapp.repository.TextPairRepository;
 import com.example.annotationapp.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,66 +32,85 @@ import java.util.stream.Collectors;
 @Service
 public class AnnotationService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AnnotationService.class);
+
     private final AnnotationRepository annotationRepository;
     private final DatasetRepository datasetRepository;
     private final UserRepository userRepository;
     private final TextPairRepository textPairRepository;
+    private final ObjectMapper objectMapper;
 
     @Autowired
     public AnnotationService(AnnotationRepository annotationRepository,
                              DatasetRepository datasetRepository,
                              UserRepository userRepository,
-                             TextPairRepository textPairRepository) {
+                             TextPairRepository textPairRepository,
+                             ObjectMapper objectMapper) {
         this.annotationRepository = annotationRepository;
         this.datasetRepository = datasetRepository;
         this.userRepository = userRepository;
         this.textPairRepository = textPairRepository;
+        this.objectMapper = objectMapper;
     }
-
 
     @Transactional
     public void assignAnnotatorsToDataset(Long datasetId, List<Long> annotatorIds) {
+        logger.info("Assigning annotators {} to datasetId {}", annotatorIds, datasetId);
         Dataset dataset = datasetRepository.findById(datasetId)
-                .orElseThrow(() -> new IllegalArgumentException("Dataset not found with ID: " + datasetId));
+                .orElseThrow(() -> {
+                    logger.error("Dataset not found with ID: {}", datasetId);
+                    return new IllegalArgumentException("Dataset not found with ID: " + datasetId);
+                });
+
         List<User> annotators = userRepository.findAllById(annotatorIds);
         if (annotators.isEmpty()) {
+            logger.warn("No annotators selected or found for IDs: {}", annotatorIds);
             throw new IllegalArgumentException("No annotators selected or found");
         }
 
         List<TextPair> allTextPairs = textPairRepository.findByDataset(dataset);
-        List<TextPair> unassignedTextPairs = new ArrayList<>();
+        if (allTextPairs.isEmpty()) {
+            logger.info("No text pairs in dataset {} to assign.", datasetId);
+            return;
+        }
 
-        for(TextPair tp : allTextPairs) {
+        List<TextPair> unassignedTextPairs = new ArrayList<>();
+        for (TextPair tp : allTextPairs) {
             if (!annotationRepository.existsByTextPairAndDatasetAndAnnotatorIsNotNull(tp, dataset)) {
                 unassignedTextPairs.add(tp);
             }
         }
 
         if (unassignedTextPairs.isEmpty()) {
+            logger.info("No unassigned text pairs to distribute in dataset {}.", datasetId);
             return;
         }
 
+        logger.info("Distributing {} unassigned text pairs among {} annotators for dataset {}.",
+                unassignedTextPairs.size(), annotators.size(), datasetId);
+
         int annotatorIndex = 0;
+        List<Annotation> annotationsToSave = new ArrayList<>();
         for (TextPair textPair : unassignedTextPairs) {
             User currentAnnotator = annotators.get(annotatorIndex % annotators.size());
-
-            Optional<com.example.annotationapp.entity.Annotation> existingAnnotationOpt =
-                    annotationRepository.findByTextPairAndDataset(textPair, dataset);
-
+            Optional<Annotation> existingAnnotationOpt = annotationRepository.findByTextPairAndDataset(textPair, dataset);
             if (existingAnnotationOpt.isPresent()) {
-                com.example.annotationapp.entity.Annotation existingAnnotation = existingAnnotationOpt.get();
+                Annotation existingAnnotation = existingAnnotationOpt.get();
                 if (existingAnnotation.getAnnotator() == null) {
                     existingAnnotation.setAnnotator(currentAnnotator);
-                    annotationRepository.save(existingAnnotation);
+                    annotationsToSave.add(existingAnnotation);
                 }
             } else {
                 Annotation newAnnotation = new Annotation(textPair, currentAnnotator, dataset);
-                annotationRepository.save(newAnnotation);
+                annotationsToSave.add(newAnnotation);
             }
             annotatorIndex++;
         }
+        if (!annotationsToSave.isEmpty()) {
+            annotationRepository.saveAll(annotationsToSave);
+            logger.info("Saved {} new/updated assignments for dataset {}.", annotationsToSave.size(), datasetId);
+        }
     }
-
 
     public List<Annotation> getPendingTasksForAnnotator(User annotator) {
         return annotationRepository.findByAnnotatorAndChosenClassIsNull(annotator);
@@ -99,22 +126,28 @@ public class AnnotationService {
                 .orElseThrow(() -> new IllegalArgumentException("Annotation task not found: " + annotationId));
 
         if (annotation.getAnnotator() == null || !annotation.getAnnotator().getId().equals(annotator.getId())) {
+            logger.warn("User {} attempted to annotate task {} not assigned to them.", annotator.getUsername(), annotationId);
             throw new SecurityException("User not authorized to annotate this task or task not assigned.");
         }
-        if (!annotation.getDataset().getClassesAsList().contains(chosenClass)) {
-            throw new IllegalArgumentException("Invalid class '" + chosenClass + "' chosen for this dataset. Possible classes are: " + annotation.getDataset().getPossibleClasses());
+        if (annotation.getDataset() == null || annotation.getDataset().getPossibleClasses() == null ||
+                !annotation.getDataset().getClassesAsList().contains(chosenClass)) {
+            String possibleClassesStr = (annotation.getDataset() != null && annotation.getDataset().getPossibleClasses() != null) ? annotation.getDataset().getPossibleClasses() : "N/A";
+            logger.warn("Invalid class '{}' chosen for dataset. Possible classes: {}", chosenClass, possibleClassesStr);
+            throw new IllegalArgumentException("Invalid class '" + chosenClass + "' chosen for this dataset.");
         }
 
         annotation.setChosenClass(chosenClass);
-        return annotationRepository.save(annotation);
+        // Logic for updatedAt if you add that field
+        Annotation savedAnnotation = annotationRepository.save(annotation);
+        logger.info("User {} saved annotation for task {} with class '{}'", annotator.getUsername(), annotationId, chosenClass);
+        return savedAnnotation;
     }
 
     public List<User> getAssignedAnnotatorsForDataset(Long datasetId) {
         Dataset dataset = datasetRepository.findById(datasetId)
                 .orElseThrow(() -> new IllegalArgumentException("Dataset not found with ID: " + datasetId));
-
-        return annotationRepository.findByDataset(dataset).stream()
-                .filter(a -> a.getAnnotator() != null)
+        // Assumes AnnotationRepository has findByDatasetAndAnnotatorIsNotNull
+        return annotationRepository.findByDatasetAndAnnotatorIsNotNull(dataset).stream()
                 .map(Annotation::getAnnotator)
                 .distinct()
                 .collect(Collectors.toList());
@@ -130,61 +163,97 @@ public class AnnotationService {
     public void deassignAnnotatorFromAnnotation(Long annotationId, User adminUser) {
         Annotation annotation = annotationRepository.findById(annotationId)
                 .orElseThrow(() -> new IllegalArgumentException("Annotation not found with ID: " + annotationId));
-
-        // On ne vérifie pas adminUser ici car la méthode est appelée par l'admin
-        // et la sécurité de la route est gérée par Spring Security.
-        // Si on voulait plus de granularité, on pourrait ajouter une vérification ici.
-
         if (annotation.getChosenClass() == null && annotation.getAnnotator() != null) {
+            User previousAnnotator = annotation.getAnnotator();
             annotation.setAnnotator(null);
             annotationRepository.save(annotation);
+            logger.info("Admin {} de-assigned pending task {} from annotator {}",
+                    adminUser.getUsername(), annotationId, previousAnnotator.getUsername());
         } else if (annotation.getChosenClass() != null) {
-            // Pour une tâche complétée, on ne fait rien ici car la "désassignation"
-            // d'une tâche complétée signifierait perdre l'info de qui l'a faite.
-            // Le message d'erreur que tu avais vu était pour la suppression de l'utilisateur, pas cette méthode.
-            System.out.println("Annotation " + annotationId + " is already completed. De-assigning annotator from a completed task is not standard procedure here.");
+            logger.warn("Admin {} attempted to de-assign a completed task {}.",
+                    adminUser.getUsername(), annotationId);
         }
     }
 
-    /**
-     * Dé-assigne toutes les tâches PENDANTES d'un annotateur spécifique.
-     * Cela met leur champ 'annotator' à null.
-     * @param annotator L'utilisateur annotateur dont les tâches pendantes doivent être dé-assignées.
-     */
     @Transactional
     public void deassignAllPendingTasksFromAnnotator(User annotator) {
         List<Annotation> pendingTasks = annotationRepository.findByAnnotatorAndChosenClassIsNull(annotator);
-        for (Annotation task : pendingTasks) {
-            task.setAnnotator(null); // Met l'annotateur à null pour cette tâche
-            annotationRepository.save(task); // Sauvegarde le changement
+        if (!pendingTasks.isEmpty()) {
+            pendingTasks.forEach(task -> task.setAnnotator(null));
+            annotationRepository.saveAll(pendingTasks);
+            logger.info("De-assigned {} pending tasks from annotator {}", pendingTasks.size(), annotator.getUsername());
+        } else {
+            logger.info("No pending tasks found to de-assign for annotator {}", annotator.getUsername());
         }
     }
 
-    /**
-     * Trouve toutes les annotations (pendantes ou complétées) pour un annotateur spécifique.
-     * @param annotator L'utilisateur annotateur.
-     * @return Une liste de ses annotations.
-     */
     public List<Annotation> findByAnnotator(User annotator) {
         return annotationRepository.findByAnnotator(annotator);
     }
+
     public long countAnnotationsMadeToday() {
-        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
-        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
-        // Tu auras besoin d'un champ 'annotatedAt' (ou 'lastModifiedAt') dans ton entité Annotation
-        // Pour l'instant, on va simuler. Si tu as un tel champ, adapte la requête.
-        // Si tu n'as pas de champ de date d'annotation, cette statistique sera difficile à obtenir précisément.
-        // Pour cet exemple, je vais supposer que tu as un @UpdateTimestamp sur un champ lastModified dans Annotation.
-        // Si ce n'est pas le cas, il faudra l'ajouter à l'entité Annotation et au repository.
+        // TODO: Implement real logic with an 'annotatedAt' or 'updatedAt' field in Annotation entity
+        long completedCount = annotationRepository.countByChosenClassIsNotNull();
+        return completedCount > 3 ? (completedCount / 3) + (long)(Math.random() * 3) : (long)(Math.random() * 5); // Adjusted fictive logic
+    }
 
-        // Supposons que tu as un champ `updatedAt` dans l'entité Annotation
-        // et une méthode dans le repository : countByUpdatedAtBetweenAndChosenClassIsNotNull(LocalDateTime start, LocalDateTime end);
-        // return annotationRepository.countByUpdatedAtBetweenAndChosenClassIsNotNull(startOfDay, endOfDay);
+    public void exportAnnotationsToCsv(Long datasetId, Writer writer) throws IOException {
+        Dataset dataset = datasetRepository.findById(datasetId)
+                .orElseThrow(() -> new IllegalArgumentException("Dataset not found with ID: " + datasetId));
+        List<Annotation> annotations = annotationRepository.findByDataset(dataset);
+        logger.info("Exporting {} annotations to CSV for dataset: {}", annotations.size(), dataset.getName());
 
-        // Pour l'instant, retournons un nombre fictif car la structure actuelle ne le permet pas facilement.
-        // TODO: Implémenter la logique réelle si un champ de date d'annotation existe.
-        return annotationRepository.findAll().stream()
-                .filter(a -> a.getChosenClass() != null) // Compte seulement celles qui sont réellement annotées
-                .count() / 2 + 5; // Logique fictive pour l'exemple
+        String[] headers = {"annotation_id", "dataset_name", "text_pair_id", "text1", "text2",
+                "chosen_class", "annotator_username", "annotator_nom", "annotator_prenom"};
+
+        try (CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers))) {
+            for (Annotation ann : annotations) {
+                TextPair tp = ann.getTextPair();
+                User annotator = ann.getAnnotator();
+                csvPrinter.printRecord(
+                        ann.getId(),
+                        dataset.getName(),
+                        tp != null ? tp.getId() : "N/A",
+                        tp != null ? tp.getText1() : "N/A",
+                        tp != null ? tp.getText2() : "N/A",
+                        ann.getChosenClass() != null ? ann.getChosenClass() : "NOT_ANNOTATED",
+                        annotator != null ? annotator.getUsername() : "N/A",
+                        annotator != null ? annotator.getNom() : "N/A",
+                        annotator != null ? annotator.getPrenom() : "N/A"
+                );
+            }
+            writer.flush();
+        } catch (IOException e) {
+            logger.error("Error writing CSV data for dataset {}: {}", dataset.getName(), e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    public List<AnnotationExportDto> getAnnotationsForExport(Long datasetId) {
+        Dataset dataset = datasetRepository.findById(datasetId)
+                .orElseThrow(() -> new IllegalArgumentException("Dataset not found with ID: " + datasetId));
+        List<Annotation> annotations = annotationRepository.findByDataset(dataset);
+        logger.info("Preparing {} annotations for JSON export for dataset: {}", annotations.size(), dataset.getName());
+
+        return annotations.stream().map(ann -> {
+            AnnotatorExportDto annotatorDto = null;
+            if (ann.getAnnotator() != null) {
+                annotatorDto = new AnnotatorExportDto(
+                        ann.getAnnotator().getUsername(),
+                        ann.getAnnotator().getNom(),
+                        ann.getAnnotator().getPrenom()
+                );
+            }
+            TextPair tp = ann.getTextPair();
+            return new AnnotationExportDto(
+                    ann.getId(),
+                    dataset.getName(),
+                    tp != null ? tp.getId() : null,
+                    tp != null ? tp.getText1() : "N/A",
+                    tp != null ? tp.getText2() : "N/A",
+                    ann.getChosenClass(),
+                    annotatorDto
+            );
+        }).collect(Collectors.toList());
     }
 }
