@@ -125,8 +125,8 @@ Les mots de passe pour les nouveaux annotateurs créés par l'admin sont auto-g�
 
 ## Licence
 
-Ce projet est distribué sous la licence XYZ. (Précise ta licence si tu en as une, sinon tu peux mettre "Tous droits réservés" ou choisir une licence open source comme MIT).
+Ce projet appartient a ILYAS HASNAOUI.
 
 ---
 
-*Dernière mise à jour : JJ/MM/AAAA*
+*Dernière mise à jour : 24/05/2025*
