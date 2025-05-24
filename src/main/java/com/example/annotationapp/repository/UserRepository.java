@@ -12,4 +12,8 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
     List<User> findByRolesContaining(Role role);
+    // Pour trouver un utilisateur actif par son username (utile pour le login)
+    Optional<User> findByUsernameAndEnabledTrue(String username);
+    // Pour lister les annotateurs actifs
+    List<User> findByRolesContainingAndEnabledTrue(Role role);
 }

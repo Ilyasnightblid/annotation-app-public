@@ -7,12 +7,13 @@ import lombok.Setter;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @Table(name = "annotations")
 @Getter
 @Setter
 @NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class) // IMPORTANT: Active l'audit JPA pour cette entité
 public class Annotation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,4 +41,11 @@ public class Annotation {
     }
     @UpdateTimestamp // Se met à jour automatiquement à chaque modification de l'entité
     private LocalDateTime updatedAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "corrected_by_admin_id")
+    private User correctedByAdmin; // L'admin qui a fait la correction
+
+    private LocalDateTime correctedAt; // Quand la correction a eu lieu
+
+// N'oublie pas les getters et setters pour ces nouveaux champs
 }

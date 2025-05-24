@@ -1,47 +1,91 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="fr">
 <head th:replace="~{fragments/header :: header-head}">
-    <title>Manage Annotators</title>
+    <title>Manage Annotators - Annotation App</title>
 </head>
 <body class="with-fixed-navbar">
 <div th:replace="~{fragments/header :: navbar}"></div>
-<div class="container">
-    <h2>Manage Annotators</h2>
-    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
-    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-    <a th:href="@{/admin/annotators/new}" class="btn btn-primary mb-3">Add New Annotator</a>
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Admin Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Manage Annotators</li>
+        </ol>
+    </nav>
 
-    <table class="table table-striped" th:if="${annotators != null and not #lists.isEmpty(annotators)}">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Username (Login)</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- On ne liste pas l'utilisateur admin lui-même pour modification/suppression -->
-        <tr th:each="annotator : ${annotators}" th:if="${annotator.username != 'admin'}">
-            <td th:text="${annotator.id}"></td>
-            <td th:text="${annotator.username}"></td>
-            <td th:text="${annotator.prenom}"></td>
-            <td th:text="${annotator.nom}"></td>
-            <td>
-                <a th:href="@{/admin/annotators/edit/{id}(id=${annotator.id})}" class="btn btn-warning btn-sm">Edit</a>
-                <a th:href="@{/admin/annotators/delete/{id}(id=${annotator.id})}"
-                   class="btn btn-danger btn-sm"
-                   th:attr="onclick='return confirm(\'Are you sure you want to delete annotator \\\'\' + ${annotator.username} + \'\\\'? This action cannot be undone.\');'">Delete</a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-    <div th:if="${annotators == null or #lists.isEmpty(annotators) or (#lists.size(annotators) == 1 and annotators[0].username == 'admin')}">
-        <p class="text-center">No annotators (other than admin) found to manage.</p>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Annotator Management</h1>
+        <a th:href="@{/admin/annotators/new}" class="btn btn-lg btn-primary">
+            <i class="fas fa-user-plus me-2"></i>Add New Annotator
+        </a>
+    </div>
+
+    <!-- Messages Flash -->
+    <div th:if="${successMessage}" class="alert alert-success" role="alert">
+        <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-users me-2"></i>All Annotators
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0" th:if="${annotators != null and not #lists.isEmpty(annotators)}">
+                <thead>
+                <tr>
+                    <th class="text-center">ID</th>
+                    <th>Username (Login)</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="annotator : ${annotators}" th:classappend="${!annotator.enabled} ? 'table-secondary text-muted' : ''">
+                    <td class="text-center fw-medium" th:text="${annotator.id}"></td>
+                    <td th:text="${annotator.username}" class="fw-semibold"></td>
+                    <td th:text="${annotator.prenom}"></td>
+                    <td th:text="${annotator.nom}"></td>
+                    <td class="text-center">
+                        <span th:if="${annotator.enabled}" class="badge bg-success">Active</span>
+                        <span th:unless="${annotator.enabled}" class="badge bg-danger">Inactive</span>
+                    </td>
+                    <td class="text-end">
+                        <!-- Formulaire pour Activer/Désactiver -->
+                        <form th:action="@{/admin/annotators/{id}/toggle-status(id=${annotator.id})}"
+                              method="post" style="display: inline;">
+                            <button type="submit"
+                                    th:class="${annotator.enabled} ? 'btn btn-outline-warning btn-sm' : 'btn btn-outline-success btn-sm'"
+                                    th:title="${annotator.enabled} ? 'Deactivate Annotator' : 'Activate Annotator'">
+                                <i th:if="${annotator.enabled}" class="fas fa-user-slash"></i>
+                                <i th:unless="${annotator.enabled}" class="fas fa-user-check"></i>
+                                <span th:text="${annotator.enabled} ? 'Deactivate' : 'Activate'"></span>
+                            </button>
+                        </form>
+                        <!-- Tu pourrais ajouter un bouton "Edit" ici plus tard -->
+                        <!-- Bouton Edit -->
+                        <a th:href="@{/admin/annotators/edit/{id}(id=${annotator.id})}"
+                           class="btn btn-outline-info btn-sm me-1"
+                           title="Edit Annotator">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div th:if="${annotators == null or #lists.isEmpty(annotators)}" class="text-center py-5">
+                <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+                <p class="lead">No annotators found.</p>
+            </div>
+        </div>
     </div>
 </div>
+
 <div th:replace="~{fragments/footer :: footer-scripts}"></div>
 </body>
 </html>

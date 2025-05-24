@@ -7,43 +7,57 @@
     <style>
         .dataset-info-list dt {
             font-weight: 600;
-            color: var(--color-text-muted, #6c757d); /* Fallback color */
+            color: var(--color-text-muted, #6c757d);
             padding-bottom: 0.3rem;
             font-size: 0.9rem;
         }
         .dataset-info-list dd {
-            margin-bottom: 1rem; /* Espace accru */
-            font-size: 1rem; /* Taille de police standard */
+            margin-bottom: 1rem;
+            font-size: 1rem;
             word-break: break-word;
         }
-        .dataset-info-list dd .badge { /* Badges pour les classes */
+        .dataset-info-list dd .badge {
             font-size: 0.85em;
-            padding: 0.45em 0.7em; /* Padding ajusté pour les badges */
+            padding: 0.45em 0.7em;
             font-weight: 500;
         }
         .text-pair-table-container {
             max-height: 450px;
             overflow-y: auto;
             border: 1px solid var(--color-border, #dee2e6);
-            border-radius: var(--bs-border-radius-md, 0.375rem); /* Variable Bootstrap 5 pour le radius */
+            border-radius: var(--bs-border-radius-md, 0.375rem);
         }
-        .progress { /* Assurer que la position relative est là pour le texte interne */
-            position: relative;
+        .progress {
+            position: relative; /* Pour le texte interne */
+            height: 25px !important; /* Hauteur de la barre de progression */
         }
-        .progress-bar-text {
-            position: absolute; /* Positionner le texte par-dessus la barre */
+        .progress-bar { /* S'assurer que les transitions CSS sont dans style.css */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .progress-bar-text { /* Ce style est important si le texte est un enfant direct de .progress */
+            position: absolute;
             width: 100%;
             text-align: center;
             color: white;
             font-size: 0.8rem;
             font-weight: 500;
-            line-height: 25px; /* Doit correspondre à la hauteur de la .progress */
-            text-shadow: 1px 1px 1px rgba(0,0,0,0.3); /* Ombre pour lisibilité */
-            z-index: 10; /* S'assurer qu'il est au-dessus de la barre */
+            line-height: 25px; /* Doit correspondre à la hauteur de .progress */
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        /* Style pour le formulaire de correction inline */
+        .correction-form-inline .input-group-sm .form-select-sm,
+        .correction-form-inline .input-group-sm .btn-sm {
+            height: calc(1.5em + 0.5rem + 2px); /* Hauteur standard pour les small inputs/selects */
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+            font-size: 0.875rem;
         }
     </style>
 </head>
-<body class="with-fixed-navbar"> <!-- Classe pour le padding top si navbar fixe -->
+<body class="with-fixed-navbar">
 <div th:replace="~{fragments/header :: navbar}"></div>
 
 <div class="container">
@@ -56,8 +70,7 @@
         </ol>
     </nav>
 
-    <!-- En-tête de page avec titre et bouton Retour -->
-    <div class="page-header-actions mb-4"> <!-- Classe pour aligner titre et bouton -->
+    <div class="page-header-actions mb-4">
         <h1 th:text="'Dataset Details: ' + ${dataset.name}"></h1>
         <a th:href="@{/admin/datasets}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left me-2"></i>Back to Datasets List
@@ -74,44 +87,26 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <!-- ============================================ -->
-    <!-- SECTION DES BOUTONS D'EXPORT -->
-    <!-- ============================================ -->
-    <div class="mb-4 d-flex justify-content-start flex-wrap gap-2"> <!-- flex-wrap pour responsive, gap-2 pour espace -->
-        <a th:href="@{/admin/datasets/{id}/export/csv(id=${dataset.id})}"
-           class="btn btn-success">
+    <div class="mb-4 d-flex justify-content-start flex-wrap gap-2">
+        <a th:href="@{/admin/datasets/{id}/export/csv(id=${dataset.id})}" class="btn btn-success">
             <i class="fas fa-file-csv me-2"></i>Export Annotations (CSV)
         </a>
-        <a th:href="@{/admin/datasets/{id}/export/json(id=${dataset.id})}"
-           class="btn btn-info"> <!-- Couleur info pour JSON -->
+        <a th:href="@{/admin/datasets/{id}/export/json(id=${dataset.id})}" class="btn btn-info">
             <i class="fas fa-file-code me-2"></i>Export Annotations (JSON)
         </a>
     </div>
     <hr class="mb-4">
-    <!-- ============================================ -->
-    <!-- FIN DE LA SECTION DES BOUTONS D'EXPORT -->
-    <!-- ============================================ -->
-
 
     <div class="row">
-        <!-- Colonne pour les informations du Dataset -->
         <div class="col-lg-4 mb-4">
             <div class="card h-100 shadow-sm">
-                <div class="card-header">
-                    <i class="fas fa-info-circle me-2"></i>Dataset Information
-                </div>
+                <div class="card-header"><i class="fas fa-info-circle me-2"></i>Dataset Information</div>
                 <div class="card-body">
                     <dl class="dataset-info-list">
-                        <dt>ID:</dt>
-                        <dd th:text="${dataset.id}"></dd>
-
-                        <dt>Name:</dt>
-                        <dd th:text="${dataset.name}"></dd>
-
+                        <dt>ID:</dt><dd th:text="${dataset.id}"></dd>
+                        <dt>Name:</dt><dd th:text="${dataset.name}"></dd>
                         <dt>Description:</dt>
-                        <dd th:text="${dataset.description != null and not #strings.isEmpty(dataset.description) ? dataset.description : 'N/A'}"
-                            style="white-space: pre-wrap;"></dd>
-
+                        <dd th:text="${dataset.description != null and not #strings.isEmpty(dataset.description) ? dataset.description : 'N/A'}" style="white-space: pre-wrap;"></dd>
                         <dt>Possible Classes:</dt>
                         <dd>
                             <span th:each="cls, iterStat : ${dataset.getClassesAsList()}"
@@ -120,17 +115,16 @@
                                   th:text="${cls}"></span>
                             <span th:if="${#lists.isEmpty(dataset.getClassesAsList())}" class="text-muted fst-italic">N/A</span>
                         </dd>
-
                         <dt>Progress:</dt>
                         <dd>
-                            <div class="progress" style="height: 25px;"> <!-- Hauteur de la barre de progression -->
+                            <div class="progress"> <!-- Hauteur définie par CSS ou BS -->
                                 <div class="progress-bar" role="progressbar"
                                      th:style="'width: ' + ${#strings.replace(progressPercentage, ',', '.')} + ';'"
-                                     th:attr="aria-valuenow=${#strings.replace(#strings.replace(progressPercentage, '%', ''), ',', '.')}"
-                                     aria-valuemin="0" aria-valuemax="100">
-                                    <!-- Le texte est maintenant un enfant direct pour que les styles CSS le positionnent -->
+                                     th:attr="aria-valuenow=${#strings.replace(#strings.replace(progressPercentage, '%', ''), ',', '.')}">
+                                    <!-- Texte DANS la barre grâce aux styles CSS pour .progress-bar et flex -->
+                                    <span th:text="${progressPercentage}"></span>
                                 </div>
-                                <span class="progress-bar-text" th:text="${progressPercentage}"></span>
+                                <!-- Le span .progress-bar-text est enlevé si le texte est mis directement dans .progress-bar et centré par flex -->
                             </div>
                         </dd>
                     </dl>
@@ -138,16 +132,15 @@
             </div>
         </div>
 
-        <!-- Colonne pour les Text Pairs -->
         <div class="col-lg-8 mb-4">
             <div class="card h-100 shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="fas fa-stream me-2"></i>Text Pairs</span>
                     <span class="badge rounded-pill bg-primary" th:text="${#lists.size(textPairs)}"></span>
                 </div>
-                <div class="card-body p-0"> <!-- p-0 pour que la table touche les bords de la carte -->
-                    <div class="text-pair-table-container"> <!-- Conteneur avec scroll -->
-                        <table class="table table-sm table-hover mb-0"> <!-- table-sm pour compacité, mb-0 car dans container scrollable -->
+                <div class="card-body p-0">
+                    <div class="text-pair-table-container">
+                        <table class="table table-sm table-hover mb-0">
                             <thead>
                             <tr>
                                 <th class="text-center" style="width: 10%;">ID</th>
@@ -164,7 +157,7 @@
                             <tr th:if="${#lists.isEmpty(textPairs)}">
                                 <td colspan="3" class="text-center text-muted py-5">
                                     <i class="fas fa-file-alt fa-3x mb-2 d-block"></i>
-                                    No text pairs found in this dataset.
+                                    No text pairs found.
                                 </td>
                             </tr>
                             </tbody>
@@ -175,69 +168,123 @@
         </div>
     </div>
 
-    <!-- Section des Annotateurs Assignés -->
+    <!-- Section des Annotateurs Assignés ET CORRECTION -->
     <div class="card mt-4 shadow-sm">
         <div class="card-header">
-            <i class="fas fa-users me-2"></i>Assigned Annotators & Their Work
+            <i class="fas fa-users-edit me-2"></i>Assigned Annotations & Corrections <!-- Titre mis à jour -->
         </div>
         <div class="card-body">
-            <div class="mb-4"> <!-- Augmenté mb pour plus d'espace avant la table -->
+            <div class="mb-4">
                 <a th:href="@{/admin/datasets/{id}/assign(id=${dataset.id})}" class="btn btn-primary">
                     <i class="fas fa-user-plus me-2"></i>Assign/Modify Annotators
                 </a>
             </div>
 
-            <div class="table-responsive" th:if="${not #lists.isEmpty(annotations) and (#lists.size(assignedAnnotators) > 0)}"> <!-- Condition mise à jour -->
+            <div class="table-responsive" th:if="${not #lists.isEmpty(annotations) and annotations.?[annotator != null].size() > 0}">
                 <table class="table table-hover">
                     <thead>
                     <tr>
-                        <th>Annotator</th>
-                        <th class="text-center">Text Pair ID</th>
-                        <th>Chosen Class</th>
-                        <th class="text-end">Action</th>
+                        <th style="width: 20%;">Annotator</th>
+                        <th style="width: 15%;" class="text-center">Text Pair ID</th>
+                        <th style="width: 40%;">Chosen Class / Correction</th> <!-- Colonne pour affichage et formulaire -->
+                        <th style="width: 25%;" class="text-end">Actions</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <!-- On itère sur les annotations, car elles contiennent toutes les infos -->
                     <tr th:each="annotation : ${annotations}" th:if="${annotation.annotator != null}">
                         <td th:text="${annotation.annotator.username}"></td>
                         <td class="text-center" th:text="${annotation.textPair != null ? annotation.textPair.id : 'N/A'}"></td>
                         <td>
-                            <span th:if="${annotation.chosenClass != null}"
+                            <!-- Affichage de la classe actuelle -->
+                            <span th:id="'chosenClassDisplay-' + ${annotation.id}"
                                   class="badge"
-                                  th:classappend="${#strings.toLowerCase(annotation.chosenClass).contains('positive') ? 'bg-success' :
-                                                   (#strings.toLowerCase(annotation.chosenClass).contains('negative') ? 'bg-danger' :
-                                                   (#strings.toLowerCase(annotation.chosenClass).contains('neutral') or #strings.toLowerCase(annotation.chosenClass).contains('neutre') ? 'bg-secondary' : 'bg-info'))}"
-                                  th:text="${annotation.chosenClass}"></span>
-                            <span th:unless="${annotation.chosenClass != null}" class="text-muted fst-italic">Pending</span>
+                                  th:classappend="${annotation.chosenClass == null ? 'bg-light text-dark border' : (#strings.toLowerCase(annotation.chosenClass).contains('positive') ? 'bg-success' : (#strings.toLowerCase(annotation.chosenClass).contains('negative') ? 'bg-danger' : (#strings.toLowerCase(annotation.chosenClass).contains('neutral') or #strings.toLowerCase(annotation.chosenClass).contains('neutre') ? 'bg-secondary' : 'bg-info')))}"
+                                  th:text="${annotation.chosenClass != null ? annotation.chosenClass : 'Pending'}">
+                            </span>
+
+                            <!-- Formulaire de correction, initialement caché -->
+                            <form th:id="'correctionForm-' + ${annotation.id}"
+                                  th:action="@{/admin/annotations/correct/{annotationId}(annotationId=${annotation.id})}"
+                                  method="post" style="display:none;" class="mt-2 correction-form-inline">
+                                <input type="hidden" name="datasetId" th:value="${dataset.id}" />
+                                <div class="input-group input-group-sm">
+                                    <select name="chosenClass" class="form-select form-select-sm">
+                                        <option value="">-- Select New Class --</option> <!-- Option pour "effacer" l'annotation si besoin -->
+                                        <option th:each="cls : ${dataset.getClassesAsList()}"
+                                                th:value="${cls}"
+                                                th:text="${cls}"
+                                                th:selected="${cls == annotation.chosenClass}"></option>
+                                    </select>
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        <i class="fas fa-check"></i> Save
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                                            th:onclick="'toggleCorrectionForm(\'' + ${annotation.id} + '\')'">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
                         </td>
                         <td class="text-end">
+                            <!-- Bouton pour afficher/cacher le formulaire de correction -->
+                            <button type="button" class="btn btn-outline-info btn-sm me-1" title="Correct Annotation"
+                                    th:id="'editButton-' + ${annotation.id}"
+                                    th:onclick="'toggleCorrectionForm(\'' + ${annotation.id} + '\')'">
+                                <i class="fas fa-edit"></i> Correct
+                            </button>
+
+                            <!-- Bouton de désaffectation (seulement si la tâche est en attente) -->
                             <form th:if="${annotation.chosenClass == null}"
                                   th:action="@{/admin/annotations/{annotationId}/deassign(annotationId=${annotation.id})}"
-                                  method="post" style="display:inline;">
+                                  method="post" style="display:inline;"
+                                  onsubmit="return confirm('Are you sure you want to de-assign this pending task from this annotator?');">
                                 <input type="hidden" name="datasetId" th:value="${dataset.id}" />
-                                <button type="submit" class="btn btn-outline-warning btn-sm"
-                                        onclick="return confirm('Are you sure you want to de-assign this pending task?')"
-                                        title="De-assign this pending task">
-                                    <i class="fas fa-user-times"></i> <!-- Icône sans texte pour plus de compacité -->
+                                <button type="submit" class="btn btn-outline-warning btn-sm" title="De-assign Pending Task">
+                                    <i class="fas fa-user-times"></i>
                                 </button>
                             </form>
-                            <span th:if="${annotation.chosenClass != null}" class="badge bg-light text-dark border">
-                                <i class="fas fa-check-circle text-success me-1"></i>Completed
-                            </span>
                         </td>
                     </tr>
                     </tbody>
                 </table>
             </div>
-            <div th:if="${#lists.isEmpty(annotations) or (#lists.isEmpty(assignedAnnotators) and not #lists.isEmpty(annotations))}" class="text-center text-muted py-5">
+            <div th:if="${#lists.isEmpty(annotations) or annotations.?[annotator != null].empty}" class="text-center text-muted py-5">
                 <i class="fas fa-users-slash fa-3x mb-2 d-block"></i>
-                No annotators currently assigned, or no annotations to display for assigned users.
+                No annotations with assigned annotators found.
             </div>
         </div>
     </div>
 </div>
 
 <div th:replace="~{fragments/footer :: footer-scripts}"></div>
+
+<!-- JavaScript pour afficher/cacher le formulaire de correction -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    function toggleCorrectionForm(annotationId) {
+        var displaySpan = document.getElementById('chosenClassDisplay-' + annotationId);
+        var form = document.getElementById('correctionForm-' + annotationId);
+        var editButton = document.getElementById('editButton-' + annotationId);
+
+        if (form.style.display === 'none' || form.style.display === '') { // Vérifier aussi chaîne vide
+            form.style.display = 'block';
+            if(displaySpan) displaySpan.style.display = 'none';
+            if(editButton) {
+                editButton.classList.remove('btn-outline-info');
+                editButton.classList.add('btn-info'); // Changer l'apparence du bouton
+                editButton.innerHTML = '<i class="fas fa-times"></i> Cancel';
+            }
+        } else {
+            form.style.display = 'none';
+            if(displaySpan) displaySpan.style.display = 'inline-block'; // ou 'inline' selon le type de span
+            if(editButton) {
+                editButton.classList.remove('btn-info');
+                editButton.classList.add('btn-outline-info');
+                editButton.innerHTML = '<i class="fas fa-edit"></i> Correct';
+            }
+        }
+    }
+    /*]]>*/
+</script>
 </body>
 </html>

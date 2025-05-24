@@ -27,6 +27,11 @@ public class User {
     private String nom;
     private String prenom;
 
+    // NOUVEAU CHAMP POUR LA SUPPRESSION LOGIQUE
+    @Column(nullable = false) // On veut s'assurer qu'il a toujours une valeur
+    private boolean enabled = true; // Par défaut, un nouvel utilisateur est activé
+
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinTable(
             name = "users_roles",
@@ -40,9 +45,18 @@ public class User {
         this.password = password;
         this.nom = nom;
         this.prenom = prenom;
-    }
+        this.enabled = true; // S'assurer qu'il est activé à la création via ce constructeur
 
+    }
     public void addRole(Role role) {
         this.roles.add(role);
     }
+    // Tu peux ajouter des méthodes pratiques si besoin :
+    // public boolean isEnabled() {
+    //     return enabled;
+    // }
+
+    // public void setEnabled(boolean enabled) {
+    //     this.enabled = enabled;
+    // }
 }

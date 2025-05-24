@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Transactional;
+import com.example.annotationapp.entity.User;
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
@@ -190,6 +192,22 @@ public class AdminController {
 
         return "admin/dataset_details";
     }
+    @PostMapping("/datasets/delete/{id}") // Assure-toi que c'est bien POST et le chemin correct
+    public String deleteDataset(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+        logger.info("Attempting to delete dataset with ID: {}", id);
+        try {
+            datasetService.deleteDataset(id); // APPEL AU SERVICE ICI
+            redirectAttributes.addFlashAttribute("successMessage", "Dataset (ID: " + id + ") and all its associated data deleted successfully!");
+            logger.info("Successfully deleted dataset ID: {}", id);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Failed to delete dataset ID: {} - {}", id, e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (Exception e) {
+            logger.error("Unexpected error deleting dataset ID: {}", id, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting dataset (ID: " + id + "). Please check server logs.");
+        }
+        return "redirect:/admin/datasets";
+    }
 
     @PostMapping("/annotations/{annotationId}/deassign")
     public String deassignAnnotator(@PathVariable Long annotationId,
@@ -241,17 +259,26 @@ public class AdminController {
     @GetMapping("/annotators")
     public String listAnnotators(Model model) {
         Role annotatorRole = roleRepository.findByName("ROLE_ANNOTATOR");
-        if (annotatorRole == null) {
-            model.addAttribute("errorMessage", "Annotator role not found. Please initialize roles.");
-            model.addAttribute("annotators", List.of());
-        } else {
-            List<User> annotators = userRepository.findByRolesContaining(annotatorRole)
-                    .stream()
-                    .filter(user -> !"admin".equals(user.getUsername())) // Plus sûr que user.getUsername().equals("admin") si username peut être null
-                    .collect(Collectors.toList());
-            model.addAttribute("annotators", annotators);
-        }
+        // Récupère TOUS les annotateurs (actifs et inactifs) pour la vue admin
+        List<User> allAnnotators = userRepository.findByRolesContaining(annotatorRole);
+        model.addAttribute("annotators", allAnnotators);
         return "admin/list_annotators";
+    }
+    @PostMapping("/annotators/{id}/toggle-status")
+    @Transactional // Bonne pratique pour les opérations de mise à jour
+    public String toggleAnnotatorStatus(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        User annotator = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid annotator Id:" + id));
+
+        // Vérifier qu'on ne désactive pas le dernier admin ou soi-même si c'est une app multi-admin (pas notre cas ici)
+        // Pour la simplicité, on ne fait pas cette vérification ici.
+
+        annotator.setEnabled(!annotator.isEnabled()); // Inverse le statut
+        userRepository.save(annotator);
+
+        String status = annotator.isEnabled() ? "activated" : "deactivated";
+        redirectAttributes.addFlashAttribute("successMessage", "Annotator " + annotator.getUsername() + " " + status + " successfully.");
+        return "redirect:/admin/annotators";
     }
 
     @GetMapping("/annotators/new")
@@ -374,27 +401,90 @@ public class AdminController {
 
     @PostMapping("/annotators/update/{id}")
     public String updateAnnotator(@PathVariable("id") Long id,
-                                  @ModelAttribute("user") User userForm,
+                                  @ModelAttribute("user") User userForm, // Données venant du formulaire
                                   BindingResult result,
-                                  RedirectAttributes redirectAttributes, Model model) {
+                                  @RequestParam(value = "newPassword", required = false) String newPassword, // Champ pour le nouveau mot de passe
+                                  RedirectAttributes redirectAttributes,
+                                  Model model) { // Model pour renvoyer en cas d'erreur de validation
+
+        logger.info("Attempting to update annotator with ID: {}", id);
+
         User existingUser = userRepository.findById(id).orElse(null);
-        if (existingUser == null || "admin".equals(existingUser.getUsername())) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Annotator not found or action not allowed.");
+
+        if (existingUser == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Annotator not found with ID: " + id);
             return "redirect:/admin/annotators";
         }
-        // ... (logique de validation complète ici) ...
+
+        // Empêcher la modification de l'utilisateur 'admin' ou d'un utilisateur qui n'est pas annotateur
+        if ("admin".equals(existingUser.getUsername()) || !existingUser.getRoles().stream().anyMatch(role -> "ROLE_ANNOTATOR".equals(role.getName()))) {
+            redirectAttributes.addFlashAttribute("errorMessage", "This user cannot be modified through this form.");
+            return "redirect:/admin/annotators";
+        }
+
+        // --- Validation ---
+        // Valider le nom d'utilisateur (s'il a changé et s'il est déjà pris par un AUTRE utilisateur)
+        if (userForm.getUsername() != null && !userForm.getUsername().trim().isEmpty() &&
+                !userForm.getUsername().trim().equals(existingUser.getUsername())) {
+            if (userRepository.findByUsername(userForm.getUsername().trim()).isPresent()) {
+                result.rejectValue("username", "Duplicate", "This username is already taken by another user.");
+            }
+        } else if (userForm.getUsername() == null || userForm.getUsername().trim().isEmpty()) {
+            result.rejectValue("username", "NotEmpty", "Username cannot be empty.");
+        }
+
+        // Valider le prénom
+        if (userForm.getPrenom() == null || userForm.getPrenom().trim().isEmpty()) {
+            result.rejectValue("prenom", "NotEmpty", "First name is required.");
+        }
+        // Valider le nom
+        if (userForm.getNom() == null || userForm.getNom().trim().isEmpty()) {
+            result.rejectValue("nom", "NotEmpty", "Last name is required.");
+        }
+
         if (result.hasErrors()) {
-            userForm.setId(id);
-            return "admin/edit_annotator";
+            logger.warn("Validation errors while updating annotator ID {}: {}", id, result.getAllErrors());
+            userForm.setId(id); // S'assurer que l'ID est toujours là pour le formulaire
+            // Les champs username, prenom, nom dans userForm sont ceux du formulaire,
+            // mais il faut s'assurer que l'objet 'user' dans le modèle est bien celui qui est bindé
+            model.addAttribute("user", userForm); // Renvoyer les données du formulaire avec les erreurs
+            return "admin/edit_annotator"; // Retourne à la page d'édition
         }
+
         try {
-            // ... (logique de mise à jour) ...
-            userRepository.save(existingUser);
-            redirectAttributes.addFlashAttribute("successMessage", "Annotator updated successfully!");
+            // Mettre à jour les champs de l'utilisateur existant avec les données du formulaire
+            if (userForm.getUsername() != null && !userForm.getUsername().trim().isEmpty()) {
+                existingUser.setUsername(userForm.getUsername().trim());
+            }
+            existingUser.setPrenom(userForm.getPrenom().trim());
+            existingUser.setNom(userForm.getNom().trim());
+
+            // Gérer le changement de mot de passe (s'il est fourni)
+            if (newPassword != null && !newPassword.trim().isEmpty()) {
+                if (newPassword.trim().length() < 6) { // Exemple de validation de longueur minimale
+                    result.rejectValue("password", "Size", "New password must be at least 6 characters long."); // 'password' est le nom du champ dans le DTO ou l'entité si on le mappait directement
+                    // Ici on ajoute une erreur globale ou on lie à un champ fictif
+                    model.addAttribute("passwordError", "New password must be at least 6 characters long.");
+                    userForm.setId(id); // S'assurer que l'ID est toujours là pour le formulaire
+                    model.addAttribute("user", userForm);
+                    return "admin/edit_annotator";
+                }
+                existingUser.setPassword(passwordEncoder.encode(newPassword.trim()));
+                logger.info("Password updated for annotator ID: {}", id);
+            }
+
+            userRepository.save(existingUser); // Sauvegarder les modifications
+            logger.info("Annotator ID: {} updated successfully.", id);
+            redirectAttributes.addFlashAttribute("successMessage", "Annotator '" + existingUser.getUsername() + "' updated successfully!");
+
         } catch (Exception e) {
-            // ... (gestion d'erreur) ...
-            return "admin/edit_annotator";
+            logger.error("Error updating annotator ID: {}", id, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Error updating annotator: " + e.getMessage());
+            userForm.setId(id);
+            model.addAttribute("user", userForm); // Renvoyer avec les données actuelles du formulaire
+            return "admin/edit_annotator"; // Retourne à la page d'édition en cas d'erreur
         }
+
         return "redirect:/admin/annotators";
     }
 
@@ -417,5 +507,29 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("errorMessage", "Error deleting annotator: " + e.getMessage());
         }
         return "redirect:/admin/annotators";
+    }
+
+    @PostMapping("/annotations/correct/{annotationId}")
+    public String correctAnnotation(@PathVariable Long annotationId,
+                                    @RequestParam Long datasetId, // Pour la redirection
+                                    @RequestParam String chosenClass, // La nouvelle classe choisie par l'admin
+                                    @AuthenticationPrincipal UserDetails adminUserDetails,
+                                    RedirectAttributes redirectAttributes) {
+
+        User adminUser = userRepository.findByUsername(adminUserDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Admin user not found")); // Gérer plus proprement en prod
+
+        try {
+            annotationService.correctAnnotation(annotationId, chosenClass, adminUser);
+            redirectAttributes.addFlashAttribute("successMessage", "Annotation corrected successfully!");
+        } catch (IllegalArgumentException e) {
+            logger.warn("Error correcting annotation {}: {}", annotationId, e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (Exception e) {
+            logger.error("Unexpected error correcting annotation {}", annotationId, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "An unexpected error occurred while correcting the annotation.");
+        }
+
+        return "redirect:/admin/datasets/" + datasetId; // Redirige vers la page de détails du dataset
     }
 }

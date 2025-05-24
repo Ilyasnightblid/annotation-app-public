@@ -2,136 +2,92 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="fr">
 <head th:replace="~{fragments/header :: header-head}">
     <title>Admin Dashboard - Annotation App</title>
-    <style>
-        /* Styles spécifiques au dashboard si besoin, en plus de style.css */
-        .stat-card {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        }
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 20px rgba(0,0,0,0.12);
-        }
-        .stat-card .card-body {
-            display: flex;
-            align-items: center;
-            padding: 1.5rem;
-        }
-        .stat-card .stat-icon {
-            font-size: 2.5rem; /* Taille de l'icône */
-            padding: 15px;
-            border-radius: 50%; /* Cercle */
-            margin-right: 1.5rem;
-            width: 70px; /* Taille fixe pour l'icône */
-            height: 70px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        /* Couleurs douces pour les fonds d'icônes */
-        .stat-card .stat-icon.bg-primary-soft { background-color: rgba(var(--bs-primary-rgb), 0.1); color: var(--bs-primary); }
-        .stat-card .stat-icon.bg-success-soft { background-color: rgba(var(--bs-success-rgb), 0.1); color: var(--bs-success); }
-        .stat-card .stat-icon.bg-info-soft { background-color: rgba(var(--bs-info-rgb), 0.1); color: var(--bs-info); }
-        .stat-card .stat-icon.bg-warning-soft { background-color: rgba(var(--bs-warning-rgb), 0.1); color: var(--bs-warning); }
-        /* Ajout d'une couleur pour la nouvelle carte */
-        .stat-card .stat-icon.bg-danger-soft { background-color: rgba(var(--bs-danger-rgb), 0.1); color: var(--bs-danger); }
-
-
-        .stat-card .stat-content .stat-label {
-            font-size: 0.85rem;
-            color: var(--color-text-muted, #6c757d); /* Fallback color */
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.25rem;
-        }
-        .stat-card .stat-content .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--color-text, #212529); /* Fallback color */
-        }
-        .chart-container {
-            position: relative;
-            height: 350px;
-            width: 100%;
-        }
-    </style>
+    <!-- Les styles inline que tu avais pour .stat-card sont maintenant dans style.css sous .stat-card-admin -->
+    <!-- Si tu avais d'autres styles spécifiques ici, déplace-les vers style.css ou garde-les si vraiment uniques à cette page -->
 </head>
 <body class="with-fixed-navbar">
 <div th:replace="~{fragments/header :: navbar}"></div>
 
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="mb-4">Admin Dashboard</h1>
-        <!-- Tu peux ajouter un bouton ici si besoin, ex: nouveau dataset -->
+    <div class="d-flex justify-content-between align-items-center mb-3"> <!-- Moins de marge en bas pour le titre principal -->
+        <h1>Admin Dashboard</h1>
+        <!-- Tu peux ajouter un bouton d'action principal ici si pertinent, ex:
+        <a th:href="@{/admin/datasets/new}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i> New Dataset
+        </a>
+        -->
     </div>
-    <p class="lead mb-5" sec:authorize="isAuthenticated()">
-        Welcome back, <strong sec:authentication="principal.username">Administrator</strong>! Overview of your annotation projects.
+    <p class="lead mb-4"> <!-- Moins de marge en bas pour le message de bienvenue -->
+        Welcome back, <strong sec:authentication="principal.username" class="text-primary">Administrator</strong>! Overview of your annotation projects.
     </p>
 
-    <!-- 1. Cartes de Statistiques (MISES À JOUR) -->
-    <div class="row mb-4 g-4">
-        <div class="col-xl-3 col-md-6">
-            <div class="card stat-card h-100">
+    <!-- 1. Cartes de Statistiques (NOUVEAU DESIGN) -->
+    <div class="row g-4 mb-4"> <!-- mb-4 pour espace avant le graphique -->
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-4 mb-xl-0">
+            <div class="card stat-card-admin datasets h-100">
+                <!-- Optionnel : Badge (la logique pour l'afficher doit venir du backend) -->
+                <!-- <span class="badge-new-dataset" th:if="${newDatasetAlert}">NEW</span> -->
                 <div class="card-body">
-                    <div class="stat-icon bg-primary-soft">
-                        <i class="fas fa-database"></i>
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-layer-group"></i>
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Datasets</div>
-                        <div class="stat-value" th:text="${datasetCount}">0</div>
+                        <div class="stat-value stat-value-animated" th:text="${datasetCount != null ? datasetCount : 'N/A'}">0</div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card stat-card h-100">
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-4 mb-xl-0">
+            <div class="card stat-card-admin annotators h-100">
                 <div class="card-body">
-                    <div class="stat-icon bg-success-soft">
+                    <div class="stat-icon-wrapper">
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Annotators</div>
-                        <div class="stat-value" th:text="${annotatorCount}">0</div>
+                        <div class="stat-value stat-value-animated" th:text="${annotatorCount != null ? annotatorCount : 'N/A'}">0</div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6"> <!-- NOUVELLE CARTE -->
-            <div class="card stat-card h-100">
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-4 mb-md-0"> <!-- Ajustement des marges pour responsive -->
+            <div class="card stat-card-admin tasks h-100">
                 <div class="card-body">
-                    <div class="stat-icon bg-info-soft">
-                        <i class="fas fa-tasks"></i> <!-- Icône pour les tâches totales -->
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-clipboard-list"></i>
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Total Tasks (Pairs)</div>
-                        <div class="stat-value" th:text="${totalTextPairs}">0</div>
+                        <div class="stat-value stat-value-animated" th:text="${totalTextPairs != null ? totalTextPairs : 'N/A'}">0</div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6"> <!-- NOUVELLE CARTE -->
-            <div class="card stat-card h-100">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="card stat-card-admin completed h-100">
                 <div class="card-body">
-                    <div class="stat-icon bg-warning-soft"> <!-- Ou bg-danger-soft -->
-                        <i class="fas fa-check-double"></i> <!-- Icône pour les annotations complétées -->
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-check-double"></i>
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Completed Annotations</div>
-                        <div class="stat-value" th:text="${totalCompletedAnnotations}">0</div>
+                        <div class="stat-value stat-value-animated" th:text="${totalCompletedAnnotations != null ? totalCompletedAnnotations : 'N/A'}">0</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 2. Diagramme de progression des datasets (RESTE IDENTIQUE) -->
-    <div class="row">
+    <!-- 2. Diagramme de progression des datasets (Structure HTML gardée, les styles CSS et JS de Chart.js s'en occupent) -->
+    <div class="row mb-5"> <!-- mb-5 pour espace avant les quick actions -->
         <div class="col-12">
-            <div class="card">
+            <div class="card"> <!-- La carte englobe le graphique -->
                 <div class="card-header">
                     <i class="fas fa-chart-bar me-2"></i>Dataset Progress
                 </div>
                 <div class="card-body">
-                    <div class="chart-container">
+                    <div class="chart-container" style="height: 380px;"> <!-- Tu peux ajuster cette hauteur -->
                         <canvas id="datasetProgressChart"></canvas>
                     </div>
                 </div>
@@ -139,23 +95,22 @@
         </div>
     </div>
 
-    <h3 class="mt-5 mb-3">Quick Actions</h3>
-    <div class="list-group shadow-sm">
-        <a th:href="@{/admin/datasets}" class="list-group-item list-group-item-action fs-5 py-3 px-4 d-flex justify-content-between align-items-center">
-            <span><i class="fas fa-database fa-fw me-3 text-primary"></i>Manage Datasets</span>
-            <i class="fas fa-chevron-right text-muted"></i>
+    <!-- Quick Actions (NOUVEAU DESIGN) -->
+    <h2 class="quick-actions-header">Quick Actions</h2>
+    <div class="list-group"> <!-- Pas de shadow-sm ici, la carte a déjà une ombre -->
+        <a th:href="@{/admin/datasets}" class="list-group-item list-group-item-action quick-action-datasets">
+            <div><i class="fas fa-database action-icon"></i>Manage Datasets</div>
+            <!-- La petite flèche est ajoutée via CSS ::after -->
         </a>
-        <a th:href="@{/admin/annotators}" class="list-group-item list-group-item-action fs-5 py-3 px-4 d-flex justify-content-between align-items-center">
-            <span><i class="fas fa-users-cog fa-fw me-3 text-success"></i>Manage Annotators</span>
-            <i class="fas fa-chevron-right text-muted"></i>
+        <a th:href="@{/admin/annotators}" class="list-group-item list-group-item-action quick-action-annotators">
+            <div><i class="fas fa-users-cog action-icon"></i>Manage Annotators</div>
         </a>
     </div>
-
 </div>
 
 <div th:replace="~{fragments/footer :: footer-scripts}"></div>
 
-<!-- Script pour initialiser le graphique Chart.js (RESTE IDENTIQUE) -->
+<!-- Script pour initialiser le graphique Chart.js (identique à celui que tu avais) -->
 <script th:inline="javascript">
     /*<![CDATA[*/
     document.addEventListener('DOMContentLoaded', function () {
@@ -164,12 +119,20 @@
             var datasetNames = /*[[${datasetNames}]]*/ [];
             var datasetProgressValues = /*[[${datasetProgressValues}]]*/ [];
 
-            // Créer un dégradé pour les barres
+            // Vérifier si les données sont vides pour éviter une erreur Chart.js
+            if (!datasetNames || datasetNames.length === 0) {
+                // Optionnel: Afficher un message dans le canvas ou le cacher
+                // ctx.getContext('2d').fillText("No data to display for dataset progress.", 10, 50);
+                // return;
+            }
+
+
             const chartCanvas = ctx.getContext('2d');
             let gradient;
-            // Attendre que le graphique soit initialisé pour obtenir chartArea
-            // Pour l'instant, on définit un dégradé simple, Chart.js l'appliquera
-            gradient = chartCanvas.createLinearGradient(0, 0, 0, ctx.height || 300); // Hauteur par défaut si non dispo
+            // Attendre que le graphique soit initialisé pour obtenir chartArea ou utiliser la hauteur du canvas
+            // Ceci est une tentative, chartArea peut ne pas être disponible immédiatement.
+            // Le dégradé pourrait devoir être défini dans les options du graphique si on a des soucis.
+            gradient = chartCanvas.createLinearGradient(0, 0, 0, ctx.height || 350); // Utilise ctx.height
             gradient.addColorStop(0, 'rgba(0, 123, 255, 0.8)');    // Bleu primaire Bootstrap
             gradient.addColorStop(1, 'rgba(106, 90, 205, 0.6)');   // SlateBlue (violet clair)
 
@@ -178,14 +141,14 @@
                 data: {
                     labels: datasetNames,
                     datasets: [{
-                        label: 'Completion %',
+                        label: 'Completion %', // Ce label est utilisé dans le tooltip
                         data: datasetProgressValues,
-                        backgroundColor: gradient,
-                        borderColor: 'rgba(0, 123, 255, 1)',
-                        borderWidth: 1,
-                        borderRadius: { topLeft: 5, topRight: 5, bottomLeft: 0, bottomRight: 0 }, // Coins arrondis en haut
-                        barPercentage: 0.7, // Largeur relative des barres
-                        categoryPercentage: 0.8 // Espacement entre les groupes de barres
+                        backgroundColor: gradient, // Utilise le dégradé défini
+                        borderColor: 'rgba(0, 100, 200, 1)', // Couleur de bordure un peu plus foncée que le bleu
+                        borderWidth: 0, // Tu peux remettre 1 si tu préfères une bordure
+                        borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
+                        barPercentage: 0.6, // Barres un peu moins larges pour plus d'espace
+                        categoryPercentage: 0.7
                     }]
                 },
                 options: {
@@ -197,25 +160,36 @@
                             beginAtZero: true,
                             max: 100,
                             ticks: {
-                                callback: function(value) { return value + "%" }
+                                callback: function(value) { return value + "%" },
+                                font: { family: "'Inter', sans-serif" } // Appliquer la police
                             },
                             grid: {
-                                // color: 'rgba(0,0,0,0.05)' // Lignes de grille plus claires
+                                color: 'rgba(0,0,0,0.05)' // Lignes de grille X plus claires
                             }
                         },
                         y: {
-                            grid: { display: false }
+                            ticks: {
+                                font: { family: "'Inter', sans-serif", size: 13 } // Appliquer la police
+                            },
+                            grid: {
+                                display: false // Cacher les lignes de grille Y
+                            }
                         }
                     },
                     plugins: {
-                        legend: { display: false },
+                        legend: {
+                            display: false // Pas besoin de légende pour une seule série
+                        },
                         title: {
-                            display: true,
-                            text: 'Dataset Progress (%)',
-                            font: { size: 16, family: "'Poppins', sans-serif" },
-                            padding: { bottom: 20 }
+                            display: false, // Le titre est déjà dans le card-header
+                            // text: 'Dataset Progress (%)', // Si tu veux un titre DANS le graphique
                         },
                         tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.75)',
+                            titleFont: { family: "'Poppins', sans-serif", size: 14 },
+                            bodyFont: { family: "'Inter', sans-serif", size: 12 },
+                            padding: 10,
+                            cornerRadius: 4,
                             callbacks: {
                                 label: function(context) {
                                     return context.dataset.label + ': ' + context.formattedValue + '%';
@@ -226,8 +200,19 @@
                 }
             });
         }
+
+        // Animation CSS simple pour les valeurs des cartes (déclenchée au chargement)
+        const animatedValues = document.querySelectorAll('.stat-value-animated');
+        animatedValues.forEach(el => {
+            el.style.animation = 'none'; // Reset animation
+            // void el.offsetWidth; // Trigger reflow
+            el.style.animation = null; // Re-apply animation defined in CSS
+            // L'animation 'count-up' est dans style.css
+        });
+
     });
     /*]]>*/
 </script>
+
 </body>
 </html>

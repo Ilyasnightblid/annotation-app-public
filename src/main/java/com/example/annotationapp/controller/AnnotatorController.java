@@ -1,5 +1,6 @@
 package com.example.annotationapp.controller;
 
+import com.example.annotationapp.dto.PasswordChangeDto; // Ton DTO pour le changement de mdp
 import com.example.annotationapp.entity.Annotation;
 import com.example.annotationapp.entity.User;
 import com.example.annotationapp.repository.UserRepository;
@@ -7,45 +8,70 @@ import com.example.annotationapp.service.AnnotationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import jakarta.validation.Valid; // Pour @Valid
+import java.util.ArrayList;
 import java.util.List;
-
-import com.example.annotationapp.dto.PasswordChangeDto;
-import org.springframework.security.crypto.password.PasswordEncoder; // Assure-toi qu'il est injecté
-import org.springframework.validation.BindingResult; // Pour la validation
-import jakarta.validation.Valid; // Pour la validation
+import java.util.Map;
 
 @Controller
 @RequestMapping("/annotator")
 public class AnnotatorController {
 
-    // ... autowired fields (AnnotationService, UserRepository) ...
-    @Autowired
-    private PasswordEncoder passwordEncoder; // Injecte le PasswordEncoder
-
-    // ... getCurrentUser() et dashboard() ...
+    private final AnnotationService annotationService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    private AnnotationService annotationService;
-
-    @Autowired
-    private UserRepository userRepository;
+    public AnnotatorController(AnnotationService annotationService,
+                               UserRepository userRepository,
+                               PasswordEncoder passwordEncoder) {
+        this.annotationService = annotationService;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     private User getCurrentUser(UserDetails userDetails) {
+        if (userDetails == null) {
+            throw new RuntimeException("User details are null, cannot identify current user.");
+        }
         return userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found in database: " + userDetails.getUsername()));
     }
 
     @GetMapping("/dashboard")
     public String annotatorDashboard(Model model, @AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = getCurrentUser(userDetails);
+
+        // Statistiques
+        long totalCompleted = annotationService.getTotalAnnotationsCompletedByUser(currentUser);
+        long pendingTasksCount = annotationService.getPendingTasksCountForUser(currentUser); // Utilise la nouvelle méthode
+        Map<String, Long> classDistribution = annotationService.getClassDistributionForAnnotator(currentUser);
+
+        model.addAttribute("annotatorName", currentUser.getPrenom() + " " + currentUser.getNom());
+        model.addAttribute("totalCompleted", totalCompleted);
+        model.addAttribute("pendingTasksCount", pendingTasksCount);
+
+        // Préparer les données pour Chart.js (diagramme circulaire)
+        if (classDistribution != null && !classDistribution.isEmpty()) {
+            model.addAttribute("classLabels", new ArrayList<>(classDistribution.keySet()));
+            model.addAttribute("classCounts", new ArrayList<>(classDistribution.values()));
+        } else {
+            // Fournir des listes vides pour éviter les erreurs Thymeleaf si aucune donnée
+            model.addAttribute("classLabels", new ArrayList<String>());
+            model.addAttribute("classCounts", new ArrayList<Long>());
+        }
+
+        // Liste des tâches en attente
         List<Annotation> tasks = annotationService.getPendingTasksForAnnotator(currentUser);
         model.addAttribute("tasks", tasks);
-        model.addAttribute("annotatorName", currentUser.getPrenom() + " " + currentUser.getNom());
+
         return "annotator/dashboard_annotator";
     }
 
@@ -55,12 +81,9 @@ public class AnnotatorController {
         Annotation annotation = annotationService.getAnnotationById(annotationId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid annotation task Id:" + annotationId));
 
-        // Vérifier que la tâche appartient bien à l'annotateur courant
-        if (!annotation.getAnnotator().getId().equals(currentUser.getId())) {
-            // Gérer l'accès non autorisé, par ex. rediriger avec un message d'erreur
+        if (annotation.getAnnotator() == null || !annotation.getAnnotator().getId().equals(currentUser.getId())) {
             return "redirect:/annotator/dashboard?error=unauthorized";
         }
-        // Vérifier si la tâche est déjà complétée
         if (annotation.getChosenClass() != null) {
             return "redirect:/annotator/dashboard?error=task_already_completed";
         }
@@ -69,6 +92,7 @@ public class AnnotatorController {
         model.addAttribute("dataset", annotation.getDataset());
         model.addAttribute("textPair", annotation.getTextPair());
         model.addAttribute("possibleClasses", annotation.getDataset().getClassesAsList());
+
         return "annotator/annotate_task";
     }
 
@@ -83,41 +107,41 @@ public class AnnotatorController {
             redirectAttributes.addFlashAttribute("successMessage", "Annotation saved successfully!");
         } catch (SecurityException se) {
             redirectAttributes.addFlashAttribute("errorMessage", se.getMessage());
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error saving annotation: " + e.getMessage());
-            return "redirect:/annotator/tasks/" + annotationId + "/annotate"; // Revenir au formulaire
+            return "redirect:/annotator/tasks/" + annotationId + "/annotate";
         }
         return "redirect:/annotator/dashboard";
     }
+
+    // Tes méthodes de profil (laissées telles quelles)
     @GetMapping("/profile")
     public String viewProfile(Model model, @AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = getCurrentUser(userDetails);
         model.addAttribute("user", currentUser);
-        // Initialise l'objet pour le formulaire de changement de mot de passe
         model.addAttribute("passwordChangeDto", new PasswordChangeDto());
         return "annotator/profile";
     }
+
     @PostMapping("/profile/change-password")
     public String changePassword(@ModelAttribute("passwordChangeDto") @Valid PasswordChangeDto passwordChangeDto,
                                  BindingResult result,
                                  @AuthenticationPrincipal UserDetails userDetails,
                                  RedirectAttributes redirectAttributes, Model model) {
         User currentUser = getCurrentUser(userDetails);
-        model.addAttribute("user", currentUser); // Pour réafficher le profil si erreur
+        model.addAttribute("user", currentUser);
 
-        if (!passwordEncoder.matches(passwordChangeDto.getCurrentPassword(), currentUser.getPassword())) {
+        if (passwordChangeDto.getCurrentPassword() == null || !passwordEncoder.matches(passwordChangeDto.getCurrentPassword(), currentUser.getPassword())) {
             result.rejectValue("currentPassword", "password.mismatch", "Current password is incorrect.");
         }
-        if (passwordChangeDto.getNewPassword() == null || passwordChangeDto.getNewPassword().length() < 8) {
+        if (passwordChangeDto.getNewPassword() == null || passwordChangeDto.getNewPassword().length() < 8) { // Ajuste la longueur minimale si besoin
             result.rejectValue("newPassword", "password.length", "New password must be at least 8 characters long.");
         }
-        if (!passwordChangeDto.getNewPassword().equals(passwordChangeDto.getConfirmNewPassword())) {
+        if (passwordChangeDto.getNewPassword() != null && !passwordChangeDto.getNewPassword().equals(passwordChangeDto.getConfirmNewPassword())) {
             result.rejectValue("confirmNewPassword", "password.confirmation", "New passwords do not match.");
         }
 
         if (result.hasErrors()) {
-            // Ré-afficher la page de profil avec les erreurs
             return "annotator/profile";
         }
 

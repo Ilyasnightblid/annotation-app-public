@@ -1003,3 +1003,582 @@ kbd {
 
 /* Styles généraux (s'assurer qu'ils sont présents de tes fichiers précédents) */
 /* ... (inclure les styles pour .page-header-actions, .alert, .card, .card-header, .card-body, .btn, etc.) ... */
+/* ... (Conserve tes styles :root, globaux, navbar, login, etc. d'avant) ... */
+
+/* ==========================================================================
+   Styles spécifiques pour les Cartes de Statistiques Annotateur
+   ========================================================================== */
+
+.stat-card-annotator {
+    border: none; /* Pas de bordure visible pour un look plus plat/moderne */
+    border-radius: var(--border-radius-lg, 0.75rem); /* Utilise ta variable ou une valeur */
+    transition: transform 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
+    background-color: var(--color-bg-card, #FFFFFF); /* Fond de la carte */
+    overflow: hidden; /* Pour les effets de bordure colorée */
+    position: relative; /* Pour les pseudo-éléments si on en ajoute */
+}
+
+.stat-card-annotator:hover {
+    transform: translateY(-5px); /* Effet de soulèvement */
+    box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.1)); /* Ombre plus prononcée au survol */
+}
+
+.stat-card-annotator .card-body {
+    display: flex;
+    align-items: center; /* Aligner icône et texte verticalement */
+    padding: 1.75rem; /* Padding interne de la carte */
+    position: relative;
+    z-index: 1;
+}
+
+.stat-card-annotator .stat-icon {
+    font-size: 2rem; /* Taille de l'icône ajustée */
+    width: 64px;    /* Taille du cercle de l'icône */
+    height: 64px;
+    border-radius: 50%; /* Cercle parfait */
+    margin-right: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* Empêcher l'icône de rétrécir */
+}
+
+.stat-card-annotator .stat-content {
+    line-height: 1.3; /* Ajuster l'interligne */
+}
+
+.stat-card-annotator .stat-label {
+    font-family: var(--font-primary, 'Inter', sans-serif);
+    font-size: 0.9rem; /* Taille du label */
+    color: var(--color-text-muted, #78909C);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.3rem; /* Espace entre label et valeur */
+    display: block; /* Assurer qu'il prend toute la largeur disponible */
+}
+
+.stat-card-annotator .stat-value {
+    font-family: var(--font-headings, 'Poppins', sans-serif);
+    font-size: 2.25rem; /* Valeur plus grande */
+    font-weight: 700;  /* Plus gras */
+    color: var(--color-text, #37474F);
+    line-height: 1.1; /* Ajuster pour les chiffres hauts */
+}
+
+/* Styles spécifiques par carte avec des bordures colorées à gauche */
+.custom-card-completed {
+    border-left: 5px solid var(--color-success, #4CAF50); /* Bordure verte */
+}
+.custom-card-completed .stat-icon {
+    background-color: color-mix(in srgb, var(--color-success, #4CAF50) 15%, transparent); /* Fond d'icône très clair */
+    color: var(--color-success, #4CAF50);
+}
+
+.custom-card-pending {
+    border-left: 5px solid var(--color-warning, #FF9800); /* Bordure orange/jaune */
+}
+.custom-card-pending .stat-icon {
+    background-color: color-mix(in srgb, var(--color-warning, #FF9800) 15%, transparent);
+    color: var(--color-warning, #FF9800);
+}
+
+/* Optionnel: Lien en bas de la carte */
+.stat-card-annotator .card-footer-link {
+    display: block;
+    padding: 0.75rem 1.75rem;
+    background-color: color-mix(in srgb, var(--color-bg-light, #F5F7FA) 70%, white);
+    text-align: right;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-text-muted, #78909C);
+    border-top: 1px solid var(--color-border, #E0E2E7);
+}
+.stat-card-annotator .card-footer-link:hover {
+    color: var(--color-primary, #5E35B1);
+    background-color: var(--color-bg-light, #F5F7FA);
+}
+.stat-card-annotator .card-footer-link i {
+    font-size: 0.7rem;
+    margin-left: 0.3rem;
+    position: relative;
+    top: -1px;
+}
+
+
+/* Styles pour le conteneur du graphique Doughnut (inchangé par rapport à avant) */
+.chart-container-annotator {
+    position: relative;
+    height: 280px; /* Un peu moins haut si besoin */
+    width: 100%;
+    max-width: 350px; /* Ajusté */
+    margin: 1rem auto 0; /* Espace au-dessus */
+}
+/* ... (Conserve tes styles :root, globaux, navbar, login, etc. d'avant) ... */
+
+/* ==========================================================================
+   Styles spécifiques pour les Cartes de Statistiques du Dashboard Admin
+   ========================================================================== */
+
+.stat-card-admin { /* Style de base pour les cartes de stats de l'admin */
+    border: none; /* Enlève la bordure par défaut de la carte Bootstrap */
+    border-radius: var(--border-radius-lg, 0.75rem);
+    background-color: var(--color-bg-card, #FFFFFF);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    /* box-shadow: var(--shadow-sm, 0 2px 4px rgba(0,0,0,0.04)); Déjà sur la classe .shadow-sm de Bootstrap */
+}
+
+.stat-card-admin:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.08)) !important; /* !important pour surcharger .shadow-sm */
+}
+
+/* Bordures latérales colorées personnalisées */
+.custom-border-primary { border-left: 4px solid var(--bs-primary, #0d6efd); }
+.custom-border-success { border-left: 4px solid var(--bs-success, #198754); }
+.custom-border-info   { border-left: 4px solid var(--bs-info, #0dcaf0); }
+.custom-border-warning { border-left: 4px solid var(--bs-warning, #ffc107); }
+/* Tu peux aussi utiliser tes variables --color-primary etc. si tu les préfères aux --bs- */
+
+.stat-card-admin .card-body {
+    padding: 1.25rem; /* Padding interne de la carte */
+}
+
+.stat-icon-admin {
+    width: 56px;    /* Taille du cercle de l'icône */
+    height: 56px;
+    border-radius: 12px; /* Coins légèrement arrondis au lieu d'un cercle complet */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.stat-icon-admin i.fa-lg { /* Pour s'assurer que l'icône est bien dimensionnée */
+    font-size: 1.5rem; /* Ajuste au besoin */
+}
+
+.stat-content-admin h6.small { /* Le label (ex: "Datasets") */
+    font-family: var(--font-primary, 'Inter', sans-serif);
+    font-size: 0.8rem !important; /* Forcer une taille plus petite */
+    font-weight: 500 !important; /* Pas trop gras */
+    color: var(--color-text-muted, #6c757d);
+    margin-bottom: 0.15rem !important; /* Moins d'espace en dessous */
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.stat-content-admin h3.fw-bold { /* La valeur numérique */
+    font-family: var(--font-headings, 'Poppins', sans-serif);
+    font-size: 1.85rem !important; /* Taille de la valeur */
+    color: var(--color-text, #2c3e50);
+    line-height: 1.2;
+}
+
+/* Amélioration du titre du Dashboard Admin */
+h1.admin-dashboard-title { /* Ajoute cette classe à ton <h1>Admin Dashboard</h1> */
+    font-family: var(--font-headings, 'Poppins', sans-serif);
+    font-weight: 700;
+    color: var(--color-primary, #5E35B1); /* Utilise ta couleur primaire */
+    padding-bottom: 0.5rem;
+    position: relative;
+    display: inline-block; /* Pour que la bordure ne prenne que la largeur du texte */
+}
+
+h1.admin-dashboard-title::after { /* Ligne de soulignement stylée */
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 60px; /* Largeur de la ligne */
+    height: 4px;  /* Épaisseur de la ligne */
+    background-color: var(--color-secondary, #00ACC1); /* Utilise ta couleur secondaire */
+    border-radius: 2px;
+}
+
+.lead.admin-welcome-text { /* Ajoute cette classe à ton <p class="lead..."> */
+    font-family: var(--font-primary, 'Inter', sans-serif);
+    color: var(--color-text-muted, #78909C);
+    font-size: 1.1rem;
+}
+
+/* Ajustement pour les Quick Actions si besoin */
+.list-group-item span {
+    font-family: var(--font-primary, 'Inter', sans-serif);
+}
+/* src/main/resources/static/css/style.css */
+
+/* ... (Tes variables :root et styles globaux existants) ... */
+/* Assure-toi que tes variables de couleur (--color-primary, etc.) sont définies */
+
+/* ==========================================================================
+   Navbar Améliorations (pour le dropdown admin)
+   ========================================================================== */
+.navbar .dropdown-menu {
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-border);
+    padding: 0.5rem 0; /* Moins de padding vertical par défaut */
+}
+.navbar .dropdown-item {
+    padding: 0.5rem 1.25rem; /* Padding pour les items */
+    font-weight: 500;
+}
+.navbar .dropdown-item i {
+    margin-right: 0.75rem;
+    width: 16px; /* Aligner les icônes */
+    text-align: center;
+}
+.navbar .dropdown-item:active { /* Style quand on clique sur un item de dropdown */
+    background-color: var(--color-primary);
+    color: white !important;
+}
+.navbar .nav-item.dropdown .nav-link { /* Pour le lien qui ouvre le dropdown */
+    display: flex;
+    align-items: center;
+}
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-left: 0.5rem;
+    border: 2px solid white; /* Bordure pour l'avatar */
+}
+
+/* ==========================================================================
+   Styles pour les Cartes de Statistiques du Dashboard Admin
+   ========================================================================== */
+.stat-card-admin {
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg); /* Coins plus arrondis */
+    box-shadow: var(--shadow-md);
+    transition: transform 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
+    overflow: hidden; /* Pour les effets de fond */
+    position: relative; /* Pour les pseudo-éléments animés */
+}
+
+.stat-card-admin:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-card-admin .card-body {
+    padding: 1.75rem;
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-card-admin .stat-icon-wrapper {
+    font-size: 2rem; /* Taille de l'icône FontAwesome */
+    width: 60px;
+    height: 60px;
+    border-radius: var(--border-radius-md);
+    margin-right: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+.stat-card-admin:hover .stat-icon-wrapper {
+    transform: scale(1.1); /* Effet de zoom sur l'icône au survol de la carte */
+}
+
+/* Couleurs spécifiques pour chaque carte */
+.stat-card-admin.datasets .stat-icon-wrapper { background-color: rgba(var(--bs-primary-rgb), 0.15); color: var(--color-primary); }
+.stat-card-admin.annotators .stat-icon-wrapper { background-color: rgba(var(--bs-success-rgb), 0.15); color: var(--color-success); }
+.stat-card-admin.tasks .stat-icon-wrapper { background-color: rgba(var(--bs-info-rgb), 0.15); color: var(--color-info); }
+.stat-card-admin.completed .stat-icon-wrapper { background-color: rgba(var(--bs-warning-rgb), 0.15); color: var(--color-warning); }
+
+
+.stat-card-admin .stat-content .stat-label {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.2rem;
+    font-weight: 500;
+}
+
+.stat-card-admin .stat-content .stat-value {
+    font-family: var(--font-headings);
+    font-size: 2.1rem; /* Valeur plus grande */
+    font-weight: 700;
+    color: var(--color-text);
+    line-height: 1.2;
+}
+
+/* "Animation" de compteur (très simple avec CSS) */
+.stat-value-animated {
+    animation: count-up 1s ease-out forwards;
+    /* La valeur réelle est toujours là, l'animation est visuelle */
+}
+@keyframes count-up { /* Exemple très basique, le vrai comptage nécessite JS */
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Badge "Nouveau" (CSS seulement) */
+.badge-new-dataset {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: var(--color-danger);
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.25em 0.5em;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600;
+    animation: pulse-badge 1.5s infinite;
+}
+@keyframes pulse-badge {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+
+/* ==========================================================================
+   Styles pour les "Quick Actions" (Liste/Boutons en bas du Dashboard)
+   ========================================================================== */
+.quick-actions-header { /* Titre "Quick Actions" */
+    font-family: var(--font-headings);
+    font-size: 1.5rem;
+    margin-top: 3rem; /* Espace au-dessus */
+    margin-bottom: 1.25rem;
+    color: var(--color-text);
+}
+
+.list-group-item-action {
+    font-family: var(--font-primary);
+    font-size: 1.1rem !important; /* !important pour surcharger le fs-5 si besoin */
+    padding: 1rem 1.25rem !important; /* Padding Bootstrap ajusté */
+    border: 1px solid var(--color-border);
+    margin-bottom: 0.75rem; /* Espace entre les items */
+    border-radius: var(--border-radius-md) !important;
+    transition: all 0.2s ease;
+    display: flex; /* Pour l'icône et le texte */
+    align-items: center;
+    justify-content: space-between; /* Pour mettre la petite flèche à droite */
+}
+.list-group-item-action:hover {
+    background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
+    color: var(--color-primary);
+    border-left: 5px solid var(--color-primary); /* Accent à gauche au survol */
+    transform: translateX(5px);
+}
+.list-group-item-action i.action-icon { /* Icône principale à gauche */
+    margin-right: 1rem;
+    font-size: 1.3rem;
+    color: var(--color-primary);
+    width: 24px; /* Pour alignement */
+}
+.list-group-item-action:hover i.action-icon {
+    color: var(--color-primary);
+}
+
+/* Petite flèche "chevron" à droite pour indiquer une action */
+.list-group-item-action::after {
+    content: '\f054'; /* Code Font Awesome pour chevron-right */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: var(--color-text-muted);
+    transition: transform 0.2s ease;
+}
+.list-group-item-action:hover::after {
+    transform: translateX(3px);
+    color: var(--color-primary);
+}
+
+/* Styles spécifiques pour les boutons d'action (si tu veux les différencier) */
+.quick-action-datasets { /* Fond bleu clair, icône */
+    /* hover: background-color: #e7f3ff; border-left-color: #0d6efd; */
+}
+.quick-action-annotators { /* Fond vert clair, icône */
+    /* hover: background-color: #d1e7dd; border-left-color: #198754; */
+}
+.quick-action-datasets i.action-icon { color: #0d6efd; } /* Bleu */
+.quick-action-annotators i.action-icon { color: #198754; } /* Vert */
+
+/* ... (Tes autres styles pour .card-header, .table, .progress-bar etc. restent importants) ... */
+/* src/main/resources/static/css/style.css */
+
+/* ... (Tes variables :root, styles globaux, et navbar existants) ... */
+/* Assure-toi que tes variables --font-primary, --font-headings,
+   --color-primary (mauve), --color-text, --border-radius-md, --shadow-lg sont définies */
+
+/* ==========================================================================
+   NOUVEAUX Styles pour la Page de Login (Split Screen)
+   ========================================================================== */
+body.login-page-split {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex; /* Permet le layout en deux colonnes */
+    overflow: hidden; /* Empêche le scroll si le contenu dépasse légèrement */
+    background-color: #f4f7f6; /* Un fond très clair pour la page entière si besoin */
+}
+
+.login-split-container {
+    display: flex;
+    width: 100%;
+    height: 100vh; /* Pleine hauteur */
+}
+
+/* Colonne de Gauche (Branding) */
+.login-branding-column {
+    flex: 0 0 45%; /* Prend 45% de la largeur, ne grandit pas, ne rétrécit pas */
+    /* background-color: var(--color-primary, #6A5ACD); /* Mauve comme fond */
+    background: linear-gradient(135deg, var(--color-primary, #6A5ACD) 0%, color-mix(in srgb, var(--color-primary, #6A5ACD) 70%, #48D1CC) 100%); /* Dégradé mauve-turquoise */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    text-align: center;
+    position: relative; /* Pour d'éventuels effets décoratifs */
+}
+.login-branding-column .app-logo {
+    font-family: var(--font-headings, 'Poppins', sans-serif);
+    font-size: 3rem; /* Logo plus grand */
+    font-weight: 700;
+    margin-bottom: 1rem;
+    letter-spacing: 1px;
+}
+.login-branding-column .app-tagline {
+    font-family: var(--font-primary, 'Inter', sans-serif);
+    font-size: 1.2rem;
+    font-weight: 400;
+    opacity: 0.9;
+    max-width: 350px; /* Limiter la largeur du slogan */
+}
+/* Optionnel: Éléments décoratifs sur la colonne de gauche */
+.login-branding-column::before, .login-branding-column::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.1;
+    background-color: white;
+}
+.login-branding-column::before { width: 200px; height: 200px; top: -50px; left: -80px; }
+.login-branding-column::after { width: 150px; height: 150px; bottom: -70px; right: -60px; }
+
+
+/* Colonne de Droite (Formulaire) */
+.login-form-column {
+    flex: 1; /* Prend le reste de l'espace disponible */
+    background-color: var(--color-bg-card, #FFFFFF); /* Fond blanc pour la zone du formulaire */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    overflow-y: auto; /* Permet le scroll si le formulaire est trop grand sur petit écran */
+}
+
+.login-form-wrapper {
+    max-width: 450px; /* Largeur max du contenu du formulaire */
+    width: 100%;
+}
+
+.login-form-wrapper .form-title { /* Le "Login" au-dessus du formulaire */
+    font-family: var(--font-headings, 'Poppins', sans-serif);
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--color-text, #343a40);
+    margin-bottom: 2.5rem; /* Espace avant le formulaire */
+    text-align: center;
+}
+
+/* Style pour les alertes dans le nouveau layout */
+.login-form-wrapper .alert {
+    border-radius: var(--border-radius-md, 0.5rem);
+    margin-bottom: 1.5rem;
+    /* Les styles d'alerte (couleurs, icônes) sont déjà définis globalement */
+}
+
+/* Champs de formulaire (floating labels, comme avant) */
+.login-form-wrapper .form-floating > .form-control,
+.login-form-wrapper .form-floating > .form-select {
+    height: calc(3.6rem + 2px); /* Un peu plus haut */
+    line-height: 1.25;
+    border-radius: var(--border-radius-md, 0.5rem);
+    border: 1px solid var(--color-border, #E0E2E7);
+    background-color: #fdfdff; /* Fond très légèrement différent pour les champs */
+}
+.login-form-wrapper .form-floating > .form-control:focus {
+    border-color: var(--color-primary, #6A5ACD);
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--color-primary, #6A5ACD) 20%, transparent);
+}
+.login-form-wrapper .form-floating > label {
+    padding: 1.1rem 0.9rem; /* Ajuster le padding du label */
+    color: var(--color-text-muted, #6c757d);
+}
+.login-form-wrapper .form-floating > label i {
+    margin-right: 0.5rem;
+    opacity: 0.7;
+}
+
+/* Bouton de Login */
+.login-form-wrapper .btn-login {
+    font-family: var(--font-headings, 'Poppins', sans-serif);
+    font-size: 1.05rem;
+    padding: 0.9rem 1.5rem; /* Padding généreux */
+    border-radius: var(--border-radius-md, 0.5rem);
+    font-weight: 600;
+    background-color: var(--color-primary, #6A5ACD);
+    border-color: var(--color-primary, #6A5ACD);
+    color: white;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+    width: 100%; /* Prend toute la largeur de son conteneur .d-grid */
+}
+.login-form-wrapper .btn-login:hover {
+    background-color: var(--color-primary-dark, #4527A0);
+    border-color: var(--color-primary-dark, #4527A0);
+    transform: translateY(-2px); /* Léger effet au survol */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.login-form-wrapper .btn-login:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+.login-form-wrapper .btn-login i {
+    margin-right: 0.6rem;
+}
+
+/* Pied de page de la carte de login (optionnel) */
+.login-form-footer {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.9rem;
+    color: var(--color-text-muted, #6c757d);
+}
+.login-form-footer a {
+    color: var(--color-primary, #6A5ACD);
+    font-weight: 500;
+}
+
+/* Responsive pour la page de login split */
+@media (max-width: 991.98px) { /* En dessous de 'lg' (grands écrans) */
+    .login-branding-column {
+        display: none; /* Cacher la colonne de branding sur les écrans plus petits */
+    }
+    .login-form-column {
+        flex: 1 1 100%; /* Le formulaire prend toute la largeur */
+        justify-content: flex-start; /* Aligner en haut sur mobile */
+        padding-top: 4rem; /* Espace en haut pour le contenu */
+    }
+    body.login-page-split {
+        background-color: var(--color-bg-card, #FFFFFF); /* Fond blanc pour toute la page sur mobile */
+    }
+}
+
+@media (max-width: 575.98px) { /* En dessous de 'sm' (petits écrans) */
+    .login-form-wrapper {
+        padding: 1rem; /* Moins de padding sur très petits écrans */
+    }
+    .login-form-wrapper .form-title {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+    }
+    .login-branding-column .app-logo { font-size: 2.5rem; }
+    .login-branding-column .app-tagline { font-size: 1rem; }
+}

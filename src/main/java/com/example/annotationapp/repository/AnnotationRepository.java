@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 @Repository
 public interface AnnotationRepository extends JpaRepository<Annotation, Long> {
@@ -25,4 +27,14 @@ public interface AnnotationRepository extends JpaRepository<Annotation, Long> {
 
     // Et la méthode pour compter les annotations complétées pour le dashboard :
     long countByChosenClassIsNotNull();
+    // Pour le nombre total d'annotations complétées par un annotateur
+    long countByAnnotatorAndChosenClassIsNotNull(User annotator);
+
+    // Pour le nombre de tâches en attente pour un annotateur
+    long countByAnnotatorAndChosenClassIsNull(User annotator);
+
+    // Pour la répartition des classes choisies par un annotateur
+    // Renvoie une liste d'objets, où chaque objet est un tableau [className, count]
+    @Query("SELECT a.chosenClass, COUNT(a) FROM Annotation a WHERE a.annotator = :annotator AND a.chosenClass IS NOT NULL GROUP BY a.chosenClass")
+    List<Object[]> countAnnotationsByClassForAnnotator(@Param("annotator") User annotator);
 }

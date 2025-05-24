@@ -21,13 +21,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+// Suppression des imports java.time car non utilisés dans les méthodes ajoutées pour l'instant
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.LinkedHashMap;
 
 @Service
 public class AnnotationService {
@@ -38,6 +38,8 @@ public class AnnotationService {
     private final DatasetRepository datasetRepository;
     private final UserRepository userRepository;
     private final TextPairRepository textPairRepository;
+    // objectMapper n'est pas utilisé dans les méthodes que nous avons modifiées,
+    // mais je le laisse car il est dans ton code original, tu l'utilises peut-être ailleurs.
     private final ObjectMapper objectMapper;
 
     @Autowired
@@ -52,7 +54,27 @@ public class AnnotationService {
         this.textPairRepository = textPairRepository;
         this.objectMapper = objectMapper;
     }
+    @Transactional
+    public Annotation correctAnnotation(Long annotationId, String newChosenClass, User adminUser) {
+        Annotation annotation = annotationRepository.findById(annotationId)
+                .orElseThrow(() -> new IllegalArgumentException("Annotation not found with ID: " + annotationId));
 
+        Dataset dataset = annotation.getDataset(); // Ou charge-le via datasetRepository.findById(annotation.getDataset().getId()) si besoin
+        if (!dataset.getClassesAsList().contains(newChosenClass)) {
+            throw new IllegalArgumentException("Invalid class '" + newChosenClass + "' for dataset '" + dataset.getName() + "'. Possible classes are: " + dataset.getPossibleClasses());
+        }
+
+        String oldClass = annotation.getChosenClass();
+        annotation.setChosenClass(newChosenClass);
+
+        // Optionnel: Si tu as ajouté les champs d'audit
+        // annotation.setCorrectedByAdmin(adminUser);
+        // annotation.setCorrectedAt(LocalDateTime.now());
+
+        Annotation savedAnnotation = annotationRepository.save(annotation);
+        logger.info("Admin {} corrected annotation ID: {} from '{}' to '{}'", adminUser.getUsername(), annotationId, oldClass, newChosenClass);
+        return savedAnnotation;
+    }
     @Transactional
     public void assignAnnotatorsToDataset(Long datasetId, List<Long> annotatorIds) {
         logger.info("Assigning annotators {} to datasetId {}", annotatorIds, datasetId);
@@ -137,7 +159,8 @@ public class AnnotationService {
         }
 
         annotation.setChosenClass(chosenClass);
-        // Logic for updatedAt if you add that field
+        // TODO: Si tu ajoutes un champ 'annotatedAt' ou 'updatedAt', mets-le à jour ici.
+        // annotation.setAnnotatedAt(LocalDateTime.now());
         Annotation savedAnnotation = annotationRepository.save(annotation);
         logger.info("User {} saved annotation for task {} with class '{}'", annotator.getUsername(), annotationId, chosenClass);
         return savedAnnotation;
@@ -146,8 +169,11 @@ public class AnnotationService {
     public List<User> getAssignedAnnotatorsForDataset(Long datasetId) {
         Dataset dataset = datasetRepository.findById(datasetId)
                 .orElseThrow(() -> new IllegalArgumentException("Dataset not found with ID: " + datasetId));
-        // Assumes AnnotationRepository has findByDatasetAndAnnotatorIsNotNull
-        return annotationRepository.findByDatasetAndAnnotatorIsNotNull(dataset).stream()
+        // Assure-toi que la méthode findByDatasetAndAnnotatorIsNotNull existe dans AnnotationRepository
+        // ou adapte cette logique pour récupérer les annotateurs distincts.
+        // Par exemple, si elle n'existe pas :
+        return annotationRepository.findByDataset(dataset).stream()
+                .filter(a -> a.getAnnotator() != null)
                 .map(Annotation::getAnnotator)
                 .distinct()
                 .collect(Collectors.toList());
@@ -175,28 +201,40 @@ public class AnnotationService {
         }
     }
 
-    @Transactional
-    public void deassignAllPendingTasksFromAnnotator(User annotator) {
-        List<Annotation> pendingTasks = annotationRepository.findByAnnotatorAndChosenClassIsNull(annotator);
-        if (!pendingTasks.isEmpty()) {
-            pendingTasks.forEach(task -> task.setAnnotator(null));
-            annotationRepository.saveAll(pendingTasks);
-            logger.info("De-assigned {} pending tasks from annotator {}", pendingTasks.size(), annotator.getUsername());
-        } else {
-            logger.info("No pending tasks found to de-assign for annotator {}", annotator.getUsername());
-        }
+    // Méthodes ajoutées/modifiées pour le dashboard annotateur
+    public long getTotalAnnotationsCompletedByUser(User annotator) {
+        return annotationRepository.countByAnnotatorAndChosenClassIsNotNull(annotator);
     }
 
-    public List<Annotation> findByAnnotator(User annotator) {
-        return annotationRepository.findByAnnotator(annotator);
+    public long getPendingTasksCountForUser(User annotator) {
+        return annotationRepository.countByAnnotatorAndChosenClassIsNull(annotator);
     }
 
+    public Map<String, Long> getClassDistributionForAnnotator(User annotator) {
+        List<Object[]> results = annotationRepository.countAnnotationsByClassForAnnotator(annotator);
+        return results.stream()
+                .collect(Collectors.toMap(
+                        arr -> (String) arr[0],
+                        arr -> (Long) arr[1],
+                        (v1, v2) -> v1, // En cas de classes nulles ou de clés dupliquées inattendues
+                        LinkedHashMap::new
+                ));
+    }
+
+    // Ta logique fictive pour countAnnotationsMadeToday
     public long countAnnotationsMadeToday() {
         // TODO: Implement real logic with an 'annotatedAt' or 'updatedAt' field in Annotation entity
+        // Par exemple, si tu as un champ `updatedAt` dans Annotation:
+        // LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        // LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+        // return annotationRepository.countByUpdatedAtBetweenAndChosenClassIsNotNull(startOfDay, endOfDay);
+
+        // Ta logique fictive originale (ajustée)
         long completedCount = annotationRepository.countByChosenClassIsNotNull();
-        return completedCount > 3 ? (completedCount / 3) + (long)(Math.random() * 3) : (long)(Math.random() * 5); // Adjusted fictive logic
+        return completedCount > 3 ? (completedCount / 3) + (long)(Math.random() * 3) : (long)(Math.random() * 5);
     }
 
+    // Tes méthodes d'export (laissées telles quelles)
     public void exportAnnotationsToCsv(Long datasetId, Writer writer) throws IOException {
         Dataset dataset = datasetRepository.findById(datasetId)
                 .orElseThrow(() -> new IllegalArgumentException("Dataset not found with ID: " + datasetId));
@@ -255,5 +293,23 @@ public class AnnotationService {
                     annotatorDto
             );
         }).collect(Collectors.toList());
+    }
+
+    // Tu avais une méthode `deassignAllPendingTasksFromAnnotator` et `findByAnnotator`
+    // que je n'avais pas dans ma version. Je les remets ici si tu les utilises.
+    @Transactional
+    public void deassignAllPendingTasksFromAnnotator(User annotator) {
+        List<Annotation> pendingTasks = annotationRepository.findByAnnotatorAndChosenClassIsNull(annotator);
+        if (!pendingTasks.isEmpty()) {
+            pendingTasks.forEach(task -> task.setAnnotator(null));
+            annotationRepository.saveAll(pendingTasks);
+            logger.info("De-assigned {} pending tasks from annotator {}", pendingTasks.size(), annotator.getUsername());
+        } else {
+            logger.info("No pending tasks found to de-assign for annotator {}", annotator.getUsername());
+        }
+    }
+
+    public List<Annotation> findByAnnotator(User annotator) {
+        return annotationRepository.findByAnnotator(annotator);
     }
 }
