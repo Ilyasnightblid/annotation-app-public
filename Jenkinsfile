@@ -13,6 +13,8 @@ pipeline {
             steps {
                 // Récupère le code depuis le SCM configuré dans le Job Jenkins
                 checkout scm
+                // Rendre le wrapper Maven exécutable pour l'environnement Linux
+                sh 'chmod +x mvnw'
             }
         }
 
@@ -20,7 +22,8 @@ pipeline {
             steps {
                 // Exécute les tests unitaires (utilise H2 via le profil test)
                 // Assurez-vous que Maven est configuré dans le PATH ou via 'tools'
-                sh 'mvn test'
+                // Exécute les tests unitaires via le wrapper Maven
+                sh './mvnw test'
             }
         }
 
@@ -29,7 +32,7 @@ pipeline {
                 // 'SonarQube' doit correspondre au nom du serveur configuré dans Jenkins
                 // Cette étape injecte les variables de connexion SonarQube
                 withSonarQubeEnv('SonarQube') {
-                    sh 'mvn sonar:sonar'
+                    sh './mvnw sonar:sonar'
                 }
             }
         }
