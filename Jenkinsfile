@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         // Adresse du registre Nexus accessible par le daemon Docker (ici localhost:8082 si mappé sur le host)
-        DOCKER_REGISTRY = 'localhost:8082'
+        DOCKER_REGISTRY = 'host.docker.internal:8082'
         IMAGE_NAME = 'annotation-app'
         IMAGE_TAG = 'latest'
     }
