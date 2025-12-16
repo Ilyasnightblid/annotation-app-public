@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: annotation-app
+  labels:
+    app: annotation-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: annotation-app
+  template:
+    metadata:
+      labels:
+        app: annotation-app
+    spec:
+      containers:
+      - name: annotation-app
+        image: localhost:8082/annotation-app:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mysql://mysql-service:3306/annotation_app_db"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "root"
+      imagePullSecrets:
+      - name: nexus-credentials
