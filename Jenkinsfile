@@ -32,7 +32,7 @@ pipeline {
                 // 'SonarQube' doit correspondre au nom du serveur configuré dans Jenkins
                 // Cette étape injecte les variables de connexion SonarQube
                 withSonarQubeEnv('SonarQube') {
-                    sh './mvnw sonar:sonar'
+                    sh './mvnw sonar:sonar -Dsonar.projectKey=annotation-app'
                 }
             }
         }
