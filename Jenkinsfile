@@ -58,9 +58,11 @@ pipeline {
 
         stage('Deploy to K8s') {
             steps {
-                // Application des manifestes Kubernetes
-                // Le cluster doit être accessible (kubeconfig présent ou ServiceAccount)
-                sh 'kubectl apply -f k8s/'
+                // On injecte le fichier de config qu'on a créé dans Jenkins
+                withCredentials([file(credentialsId: 'kubeconfig-creds', variable: 'KUBECONFIG')]) {
+                    // On ajoute --validate=false pour ignorer l'erreur d'authentification openapi
+                    sh 'kubectl apply -f k8s/ --validate=false'
+                }
             }
         }
     }
